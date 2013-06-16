@@ -1,0 +1,25 @@
+/*
+Starting to look like JavaScript with arena support...
+
+But if you're doing this, why just define a class whose constructor takes
+the externals as arguments? It's nearly the same syntax. Only reason to use
+this pattern in JavaScript is because there isn't a means to declare classes.
+
+Note this is quite different from closures passed to iterative (map, fold, etc)
+visitors, where reference to the enclosing environment doesn't require this.
+*/
+void (*arena<A> ReturnedClosure(int x))(void)
+{
+  int y;
+  arena<A>
+  {
+     // if reference x, y in here, they are copied
+     int z;
+     void foo(void)
+     {
+       ++z;
+     }
+
+     return foo
+  } 
+}
