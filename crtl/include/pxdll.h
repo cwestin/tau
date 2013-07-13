@@ -59,7 +59,7 @@ static inline void pxdllAddAfter(pxdllLink *const pThis, pxdllLink *pOther)
 
 static inline bool pxdllIsEmpty(pxdllHead *const pThis)
 {
-    return pThis->pNext != pThis;
+    return pThis->pNext == pThis;
 }
 
 static inline void pxdllAddFirst(pxdllHead *const pThis, pxdllLink *pLink)
@@ -76,6 +76,11 @@ static inline pxdllLink *pxdllGetNext(
     const pxdllHead *pThis, const pxdllLink *pLink)
 {
     return pLink->pNext == pThis ? NULL : pLink->pNext;
+}
+
+static inline pxdllLink *pxdllGetFirst(const pxdllHead *pThis)
+{
+    return pxdllGetNext(pThis, pThis);
 }
 
 #define pxdllGetStruct(pThis, structName, linkName) \
