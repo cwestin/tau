@@ -54,7 +54,7 @@ static void myObject_f(fooInterface *const pFoo, int i)
 
 static const fooInterfaceMeta fooMeta =
 {
-    {offsetof(myObject, pObjectVt)},
+    {offsetof(myObject, pObjectVt) - offsetof(myObject, pFooVt)},
     { 
         PXOBJECT_GETINTERFACE(fooInterface),
         myObject_f,
@@ -64,15 +64,16 @@ static const fooInterfaceMeta fooMeta =
 
 static const pxObjectLookup interfaceTable[] =
 {
-    {fooName, offsetof(myObject, pFooVt)},
-    {pxObjectName, offsetof(myObject, pObjectVt)},
+    {fooName, offsetof(myObject, pObjectVt) - offsetof(myObject, pFooVt)},
+    {pxObjectName, 0},
 };
 
 static const pxObjectObjectMeta objectObjectMeta =
 {
+    sizeof(interfaceTable)/sizeof(interfaceTable[0]),
     interfaceTable,
     {
-        {offsetof(myObject, pObjectVt)},
+        {0},
         {
             PXOBJECT_GETINTERFACE(pxObject),
             NULL, // TODO
@@ -92,6 +93,23 @@ static void testpxObject()
     (*pFoo->pVt->f)(pFoo, 1);
     if (pM->i != 1)
         fprintf(stderr, "foo interface increment failed\n");
+
+    pxObject *const pObject = (pxObject *)&pM->pObjectVt;
+
+    pxObject *const pObject2 =
+        (pxObject *)(*pObject->pVt->getInterface)(pObject, pxObjectName);
+    if (pObject2 != pObject)
+        fprintf(stderr, "pxObject interface recovery failure\n");
+
+    pxObject *const pObject3 =
+        (pxObject *)(*pFoo->pVt->getInterface)(pFoo, pxObjectName);
+    if (pObject3 != pObject)
+        fprintf(stderr, "pxObject interface request failure\n");
+
+    fooInterface *const pFoo2 =
+        (fooInterface *)(*pObject->pVt->getInterface)(pObject, fooName);
+    if (pFoo2 != pFoo)
+        fprintf(stderr, "fooInterface interface recovery failure\n");
 
     free(pM);
 }

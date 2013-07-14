@@ -25,7 +25,7 @@ extern const char pxObjectName[];
 
 typedef struct
 {
-    size_t objectOffset;
+    int objectOffset;
 } pxObjectInterfacePrefix;
 
 typedef struct
@@ -43,11 +43,12 @@ pxInterface *pxObjectGetInterface(
 typedef struct
 {
     const char *const pName;
-    size_t offset;
+    int offset;
 } pxObjectLookup;
 
 typedef struct
 {
+    size_t nLookup;
     const pxObjectLookup *pLookup;
     pxObjectMeta objectMeta;
 } pxObjectObjectMeta;
