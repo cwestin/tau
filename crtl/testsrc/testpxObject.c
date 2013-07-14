@@ -19,15 +19,24 @@
 
 struct fooInterface;
 
-typedef struct fooInterfaceVt
+typedef struct
 {
+    PXINTERFACE_GET(fooInterface);
     void (*f)(struct fooInterface *const pFoo, int i);
 } fooInterfaceVt;
+
+typedef struct
+{
+    pxObjectInterfacePrefix prefix;
+    fooInterfaceVt vt;
+} fooInterfaceMeta;
 
 typedef struct fooInterface
 {
     const fooInterfaceVt *pVt;
 } fooInterface;
+
+static const char fooName[] = "foo";
 
 typedef struct myObject
 {
@@ -38,22 +47,48 @@ typedef struct myObject
 
 static void myObject_f(fooInterface *const pFoo, int i)
 {
-    myObject *const pThis = pxInterfaceObject(pFoo, myObject, pFooVt);
+    myObject *const pThis = PXINTERFACE_OBJECT(pFoo, myObject, pFooVt);
+
     pThis->i += i;
 }
 
-static const fooInterfaceVt myObject_fooVt =
+static const fooInterfaceMeta fooMeta =
 {
-    myObject_f
+    {offsetof(myObject, pObjectVt)},
+    { 
+        PXOBJECT_GETINTERFACE(fooInterface),
+        myObject_f,
+    }
+};
+
+
+static const pxObjectLookup interfaceTable[] =
+{
+    {fooName, offsetof(myObject, pFooVt)},
+    {pxObjectName, offsetof(myObject, pObjectVt)},
+};
+
+static const pxObjectObjectMeta objectObjectMeta =
+{
+    interfaceTable,
+    {
+        {offsetof(myObject, pObjectVt)},
+        {
+            PXOBJECT_GETINTERFACE(pxObject),
+            NULL, // TODO
+        },
+    },
 };
 
 static void testpxObject()
 {
-    myObject *pM = (myObject *)malloc(sizeof(myObject));
-    pM->i = 0;
-    pM->pFooVt = &myObject_fooVt;
+    myObject *const pM = (myObject *)malloc(sizeof(myObject));
+    pM->pFooVt = &fooMeta.vt;
+    pM->pObjectVt = &objectObjectMeta.objectMeta.vt;
 
-    fooInterface *pFoo = (fooInterface *)&pM->pFooVt;
+    pM->i = 0;
+
+    fooInterface *const pFoo = (fooInterface *)&pM->pFooVt;
     (*pFoo->pVt->f)(pFoo, 1);
     if (pM->i != 1)
         fprintf(stderr, "foo interface increment failed\n");

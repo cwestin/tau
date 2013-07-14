@@ -7,10 +7,14 @@
 #define PX_STDDEF_H
 #endif
 
+struct pxInterface;
+
+#define PXINTERFACE_GET(iName) \
+    struct pxInterface *(*getInterface)(const struct iName *const pThis, const char *const pName)
+
 typedef struct
 {
-    struct pxInterface (*getInterface)(const struct pxInterface *const pThis,
-                                       const char *const pName);
+    PXINTERFACE_GET(pxInterface);
 } pxInterfaceVt;
 
 typedef struct pxInterface
@@ -18,7 +22,7 @@ typedef struct pxInterface
     const pxInterfaceVt *pVt;
 } pxInterface;
 
-#define pxInterfaceObject(pI, sname, vtname) \
+#define PXINTERFACE_OBJECT(pI, sname, vtname) \
     ((sname *)(((char *)pI) - offsetof(sname, vtname)))
 
 #endif // PXINTERFACE_H
