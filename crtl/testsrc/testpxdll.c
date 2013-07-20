@@ -10,49 +10,49 @@
 #endif
 
 #ifndef PXDLL_H
-#include "pxdll.h"
+#include "pxDll.h"
 #endif
 
-static void validate(const pxdllHead *pHead)
+static void validate(const pxDllHead *pHead)
 {
-    if (!pxdllIsValid(pHead))
-        fprintf(stderr, "testpxdll: invalid list\n");
+    if (!pxDllIsValid(pHead))
+        fprintf(stderr, "testpxDll: invalid list\n");
 }
 
 typedef struct
 {
     int x;
-    pxdllLink link;
+    pxDllLink link;
 } IntStruct;
 
-static void testpxdll()
+static void testpxDll()
 {
-    pxdllHead head;
-    pxdllInit(&head);
+    pxDllHead head;
+    pxDllInit(&head);
     validate(&head);
 
     const int nInts = 10;
     for(int i = 0; i < nInts; ++i)
     {
         IntStruct *pI = (IntStruct *)malloc(sizeof(IntStruct));
-        pxdllInit(&pI->link);
+        pxDllInit(&pI->link);
         pI->x = i;
-        pxdllAddLast(&head, &pI->link);
+        pxDllAddLast(&head, &pI->link);
         validate(&head);
     }
 
     int i = 0;
-    for(; !pxdllIsEmpty(&head); ++i)
+    for(; !pxDllIsEmpty(&head); ++i)
     {
-        pxdllLink *pLink = pxdllGetFirst(&head);
+        pxDllLink *pLink = pxDllGetFirst(&head);
         if (pLink == NULL)
             break;
 
-        IntStruct *pI = pxdllGetStruct(pLink, IntStruct, link);
+        IntStruct *pI = pxDllGetStruct(pLink, IntStruct, link);
         if (pI->x != i)
             fprintf(stderr, "testpxdll: invalid value in list\n");
 
-        pxdllRemove(pLink);
+        pxDllRemove(pLink);
         free(pI);
 
         validate(&head);
@@ -66,6 +66,6 @@ static void testpxdll()
 
 int main(void)
 {
-    testpxdll();
+    testpxDll();
     return 0;
 }

@@ -1,6 +1,6 @@
 
 #ifndef PXDLL_H
-#include "pxdll.h"
+#include "pxDll.h"
 #endif
 
 #ifndef PX_STDIO_H
@@ -8,7 +8,7 @@
 #define PX_STDIO_H
 #endif
 
-bool pxdllIsValid(const pxdllHead *const pThis)
+bool pxDllIsValid(const pxDllHead *const pThis)
 {
     // check if the link is malformed
     if (pThis->pNext == NULL)
@@ -27,8 +27,8 @@ bool pxdllIsValid(const pxdllHead *const pThis)
 
     // go through the list, checking on the values in links, and for loops
     bool alternate = false;
-    const pxdllLink *pOther = pThis;
-    for(const pxdllLink *pLink = pThis->pNext; pLink != pThis;
+    const pxDllLink *pOther = pThis;
+    for(const pxDllLink *pLink = pThis->pNext; pLink != pThis;
         alternate = !alternate, pLink = pLink->pNext)
     {
         // check if the link is malformed
@@ -46,7 +46,7 @@ bool pxdllIsValid(const pxdllHead *const pThis)
         if (pLink == pOther)
             return false;
         if (alternate)
-            pOther = pxdllGetNext(pThis, pOther);
+            pOther = pxDllGetNext(pThis, pOther);
     }
 
     // if we got here, all is well

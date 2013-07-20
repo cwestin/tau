@@ -12,34 +12,34 @@
 #define PX_STDDEF_H
 #endif
 
-typedef struct pxdllLink
+typedef struct pxDllLink
 {
-    struct pxdllLink *pNext;
-    struct pxdllLink *pPrevious;
-} pxdllLink;
+    struct pxDllLink *pNext;
+    struct pxDllLink *pPrevious;
+} pxDllLink;
 
-typedef pxdllLink pxdllHead;
+typedef pxDllLink pxDllHead;
 
-static inline void pxdllInit(pxdllLink *const pThis)
+static inline void pxDllInit(pxDllLink *const pThis)
 {
     pThis->pNext = pThis;
     pThis->pPrevious = pThis;
 }
 
-static inline void pxdllRemoveUnsafe(pxdllLink *const pThis)
+static inline void pxDllRemoveUnsafe(pxDllLink *const pThis)
 {
     // make the next and previous links point around this link
     pThis->pNext->pPrevious = pThis->pPrevious;
     pThis->pPrevious->pNext = pThis->pNext;
 }
 
-static inline void pxdllRemove(pxdllLink *const pThis)
+static inline void pxDllRemove(pxDllLink *const pThis)
 {
-    pxdllRemoveUnsafe(pThis);
-    pxdllInit(pThis);
+    pxDllRemoveUnsafe(pThis);
+    pxDllInit(pThis);
 }
 
-static inline void pxdllAddBefore(pxdllLink *const pThis, pxdllLink *pOther)
+static inline void pxDllAddBefore(pxDllLink *const pThis, pxDllLink *pOther)
 {
     pThis->pNext = pOther;
     pThis->pPrevious = pOther->pPrevious;
@@ -48,7 +48,7 @@ static inline void pxdllAddBefore(pxdllLink *const pThis, pxdllLink *pOther)
     pOther->pPrevious = pThis;
 }
 
-static inline void pxdllAddAfter(pxdllLink *const pThis, pxdllLink *pOther)
+static inline void pxDllAddAfter(pxDllLink *const pThis, pxDllLink *pOther)
 {
     pThis->pPrevious = pOther;
     pThis->pNext = pOther->pNext;
@@ -57,36 +57,36 @@ static inline void pxdllAddAfter(pxdllLink *const pThis, pxdllLink *pOther)
     pOther->pNext = pThis;
 }
 
-static inline bool pxdllIsEmpty(pxdllHead *const pThis)
+static inline bool pxDllIsEmpty(pxDllHead *const pThis)
 {
     return pThis->pNext == pThis;
 }
 
-static inline void pxdllAddFirst(pxdllHead *const pThis, pxdllLink *pLink)
+static inline void pxDllAddFirst(pxDllHead *const pThis, pxDllLink *pLink)
 {
-    pxdllAddAfter(pLink, pThis);
+    pxDllAddAfter(pLink, pThis);
 }
 
-static inline void pxdllAddLast(pxdllHead *const pThis, pxdllLink *pLink)
+static inline void pxDllAddLast(pxDllHead *const pThis, pxDllLink *pLink)
 {
-    pxdllAddBefore(pLink, pThis);
+    pxDllAddBefore(pLink, pThis);
 }
 
-static inline pxdllLink *pxdllGetNext(
-    const pxdllHead *pThis, const pxdllLink *pLink)
+static inline pxDllLink *pxDllGetNext(
+    const pxDllHead *pThis, const pxDllLink *pLink)
 {
     return pLink->pNext == pThis ? NULL : pLink->pNext;
 }
 
-static inline pxdllLink *pxdllGetFirst(const pxdllHead *pThis)
+static inline pxDllLink *pxDllGetFirst(const pxDllHead *pThis)
 {
-    return pxdllGetNext(pThis, pThis);
+    return pxDllGetNext(pThis, pThis);
 }
 
-#define pxdllGetStruct(pThis, structName, linkName) \
+#define pxDllGetStruct(pThis, structName, linkName) \
     ((structName *)(((char *)pThis) - offsetof(structName, linkName)))
 
 
-bool pxdllIsValid(const pxdllHead *pThis);
+bool pxDllIsValid(const pxDllHead *pThis);
 
 #endif // PXDLL_H
