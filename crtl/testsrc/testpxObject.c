@@ -35,7 +35,7 @@ static const char pxFooName[] = "pxFooName";
 typedef struct MyObject
 {
     const pxFooVt *pFooVt;
-    const pxObjectVt *pObjectVt;
+    pxObjectStruct objectStruct;
     int i;
 } MyObject;
 
@@ -49,7 +49,7 @@ static void MyObject_f(pxFoo *const pFoo, int i)
 static const pxFooVt fooVt =
 {
     {
-        offsetof(MyObject, pObjectVt) - offsetof(MyObject, pFooVt),
+        offsetof(MyObject, objectStruct.pObjectVt) - offsetof(MyObject, pFooVt),
         pxObject_getInterface,
     },
     MyObject_f,
@@ -58,7 +58,7 @@ static const pxFooVt fooVt =
 
 static const pxObjectLookup interfaceTable[] =
 {
-    {pxFooName, offsetof(MyObject, pObjectVt) - offsetof(MyObject, pFooVt)},
+    {pxFooName, offsetof(MyObject, objectStruct.pObjectVt) - offsetof(MyObject, pFooVt)},
     {pxObjectName, 0},
 };
 
@@ -70,7 +70,8 @@ static const pxObjectVt objectVt =
     },
     sizeof(interfaceTable)/sizeof(interfaceTable[0]),
     interfaceTable,
-    NULL, // TODO
+    pxObject_destroy,
+    pxObject_addMixin,
 };
 
 static void testpxObject()
@@ -78,7 +79,7 @@ static void testpxObject()
     // initialize the object
     MyObject *const pM = (MyObject *)malloc(sizeof(MyObject));
     pM->pFooVt = &fooVt;
-    pM->pObjectVt = &objectVt;
+    pxObjectStructInit(&pM->objectStruct, &objectVt);
     pM->i = 0;
 
     // try calling a method
@@ -88,19 +89,19 @@ static void testpxObject()
         fprintf(stderr, "foo interface increment failed\n");
 
     // check on the object interface implementation
-    pxObject *const pObject = (pxObject *)&pM->pObjectVt;
+    pxObject *const pObject = PXINTERFACE_getInterface(pFoo, pxObject);
+    if (!pObject)
+        fprintf(stderr, "pxObject interface request failure\n");
 
     pxObject *const pObject2 = PXINTERFACE_getInterface(pObject, pxObject);
     if (pObject2 != pObject)
         fprintf(stderr, "pxObject interface recovery failure\n");
 
-    pxObject *const pObject3 = PXINTERFACE_getInterface(pFoo, pxObject);
-    if (pObject3 != pObject)
-        fprintf(stderr, "pxObject interface request failure\n");
-
     pxFoo *const pFoo2 = PXINTERFACE_getInterface(pObject, pxFoo);
     if (pFoo2 != pFoo)
         fprintf(stderr, "pxFoo interface recovery failure\n");
+
+    PXOBJECT_destroy(pObject);
 
     free(pM);
 }

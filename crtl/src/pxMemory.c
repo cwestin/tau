@@ -89,7 +89,8 @@ static const pxObjectVt memorySystemObjectVt =
     },
     sizeof(memorySystemTable)/sizeof(memorySystemTable[0]),
     memorySystemTable,
-    NULL, // TODO
+    pxObject_destroy,
+    pxObject_addMixin,
 };
 
 static pxMemory *pxMemorySystemCreate()

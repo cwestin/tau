@@ -1,5 +1,3 @@
-(*) add destroy() to pxObject interface
-
 (*) Implement pxMinder
 
 (*) Implement pxMemoryLinked
