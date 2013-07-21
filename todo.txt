@@ -1,0 +1,36 @@
+(*) Use virtual data in pxInterface for pxObjectOffset
+
+(*) Use virtual data in pxObject for metadata
+
+(*) add destroy() to pxObject interface
+
+(*) Implement pxMinder
+
+(*) Implement pxMemoryLinked
+
+(*) Add license file
+
+(*) Define file headers
+Add throughout
+
+(*) Implement mixins on pxObject
+Create an arena with a pxMinder aggregated into pxMemoryLinked
+
+(*) Implement pxMemoryExtent
+
+(*) Implement pxLoom
+Test producer/consumer pattern
+
+(*) Submit to iarc
+Update readme.md
+
+(*) Implement pxFile, pxInputStream, pxOutputStream
+Use aio.h for reading and writing files, integrate with pxLoom
+
+(*) Build simple starter lexer
+
+(*) Build simple parser for single file program
+
+(*) Generate C code for simple program
+Write script to complete build pipeline to generate an executable
+
