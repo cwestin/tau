@@ -38,14 +38,14 @@ static void testpxMemorySystem()
         fprintf(stderr, "pxMemory interface recovery failure\n");
 
     const size_t nBytes = 15;
-    void *p = (*pMemory->pVt->alloc)(pMemory, nBytes, 0);
+    void *p = PXMEMORY_alloc(pMemory, nBytes, 0);
     for(int i = 0; i < nBytes; ++i)
     {
         if (((char *)p)[i] != 0)
             fprintf(stderr, "pxMemory allocation wasn't zeroed\n");
     }
 
-    (*pMemory->pVt->free)(pMemory, p);
+    PXMEMORY_free(pMemory, p);
 }
 
 int main(void)
