@@ -1,5 +1,3 @@
-(*) add const in front of second interface typedef name?
-
 (*) add destroy() to pxObject interface
 
 (*) Implement pxMinder
