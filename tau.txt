@@ -10,6 +10,10 @@ Add throughout
 (*) Implement mixins on pxObject
 Create an arena with a pxMinder aggregated into pxMemoryLinked
 
+(*) add clone to pxObject
+- requires hash table to deal with cycles
+  - requires hasher object and hashable interface
+
 (*) Implement pxMemoryExtent
 
 (*) Implement pxLoom
