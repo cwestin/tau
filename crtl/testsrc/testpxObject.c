@@ -98,7 +98,8 @@ static void testpxObject()
     pxObject *const pObject = (pxObject *)&pM->pObjectVt;
 
     pxObject *const pObject2 =
-        (pxObject *)(*pObject->pVt->getInterface)(pObject, pxObjectName);
+        //(pxObject *)(*pObject->pVt->getInterface)(pObject, pxObjectName);
+        PXINTERFACE_getInterface(pObject, pxObject);
     if (pObject2 != pObject)
         fprintf(stderr, "pxObject interface recovery failure\n");
 

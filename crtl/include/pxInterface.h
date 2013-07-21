@@ -23,6 +23,9 @@ typedef struct pxInterface
 } pxInterface;
 
 #define PXINTERFACE_OBJECT(pI, sname, vtname) \
-    ((sname *)(((char *)pI) - offsetof(sname, vtname)))
+    ((sname *)(((char *)(pI)) - offsetof(sname, vtname)))
+
+#define PXINTERFACE_getInterface(pO, iName) \
+    ((iName *)((*(pO)->pVt->getInterface)((pO), iName ## Name)))
 
 #endif // PXINTERFACE_H
