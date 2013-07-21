@@ -7,25 +7,21 @@
 #define PX_STDDEF_H
 #endif
 
-struct pxInterface;
 
-#define PXINTERFACE_GET(iName) \
-    struct pxInterface *(*getInterface)(const struct iName *const pThis, const char *const pName)
-
-typedef struct
+typedef struct pxInterfaceVt
 {
-    PXINTERFACE_GET(pxInterface);
-} pxInterfaceVt;
+    int pxObjectOffset; // offset of pxObject interface from this interface
+    struct pxInterfaceVt *const *const (*getInterface)(
+        struct pxInterfaceVt *const *const pThis,
+        const char *const pName);
+} pxInterfaceVt, *const pxInterface;
 
-typedef struct pxInterface
-{
-    const pxInterfaceVt *pVt;
-} pxInterface;
 
-#define PXINTERFACE_OBJECT(pI, sname, vtname) \
+#define PXINTERFACE_getInterface(pI, iName) \
+    ((iName *)((*(*(pI))->interfaceVt.getInterface)((pxInterface *const)(pI), iName ## Name)))
+
+
+#define PXINTERFACE_STRUCT(pI, sname, vtname) \
     ((sname *)(((char *)(pI)) - offsetof(sname, vtname)))
-
-#define PXINTERFACE_getInterface(pO, iName) \
-    ((iName *)((*(pO)->pVt->getInterface)((pO), iName ## Name)))
 
 #endif // PXINTERFACE_H

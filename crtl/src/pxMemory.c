@@ -25,12 +25,6 @@
 
 const char pxMemoryName[] = "pxMemory";
 
-typedef struct
-{
-    pxObjectInterfacePrefix prefix;
-    pxMemoryVt vt;
-} pxMemoryMeta;
-
 /*
 There's only one instance of the System memory object
 */
@@ -71,14 +65,14 @@ static void pxMemorySystem_free(pxMemory *const pMemory, void *p)
     free(p);
 }
 
-static const pxMemoryMeta memorySystemMeta =
+static const pxMemoryVt memorySystemVt =
 {
-    {offsetof(pxMemorySystem_s, pObjectVt) - offsetof(pxMemorySystem_s, pMemoryVt)},
     {
-        PXOBJECT_GETINTERFACE(pxMemory),
-        pxMemorySystem_alloc,
-        pxMemorySystem_free,
+        offsetof(pxMemorySystem_s, pObjectVt) - offsetof(pxMemorySystem_s, pMemoryVt),
+        pxObject_getInterface,
     },
+    pxMemorySystem_alloc,
+    pxMemorySystem_free,
 };
 
 static const pxObjectLookup memorySystemTable[] =
@@ -87,23 +81,21 @@ static const pxObjectLookup memorySystemTable[] =
     {pxObjectName, 0},
 };
 
-static const pxObjectObjectMeta memorySystemObjectMeta =
+static const pxObjectVt memorySystemObjectVt =
 {
+    {
+        0,
+        pxObject_getInterface,
+    },
     sizeof(memorySystemTable)/sizeof(memorySystemTable[0]),
     memorySystemTable,
-    {
-        {0},
-        {
-            PXOBJECT_GETINTERFACE(pxObject),
-            NULL, // TODO
-        },
-    },
+    NULL, // TODO
 };
 
 static const pxMemorySystem_s pxMemorySystem_i =
 {
-    &memorySystemMeta.vt,
-    &memorySystemObjectMeta.objectMeta.vt,
+    &memorySystemVt,
+    &memorySystemObjectVt,
 };
 
 pxMemory *pxMemorySystemGet()

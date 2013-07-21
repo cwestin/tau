@@ -5,26 +5,20 @@
 
 const char pxObjectName[] = "pxObject";
 
-pxInterface *pxObjectGetInterface(
-    const pxInterface *const pI, const char *const pName)
+pxInterface *const pxObject_getInterface(
+    pxInterface *const pI, const char *const pName)
 {
-    const pxObjectMeta *const pInterfaceMeta =
-        (pxObjectMeta *)((char *)pI->pVt - offsetof(pxObjectMeta, vt));
-    const pxObject *const pObject =
-        (pxObject *)((char *)pI + pInterfaceMeta->prefix.objectOffset);
-    const pxObjectObjectMeta *const pMeta =
-        (pxObjectObjectMeta *)((char *)pObject->pVt - offsetof(pxObjectObjectMeta, objectMeta.vt));
-
-    const pxObjectLookup *pLookup = pMeta->pLookup;
-    for(int i = pMeta->nLookup; i; ++pLookup, --i)
+    const pxObject *const ppxObject =
+        (const pxObject *const)(((char *)pI) + (*pI)->pxObjectOffset);
+    const pxObjectLookup *pLookup = (*ppxObject)->pLookup;
+    for(int i = (*ppxObject)->nLookup; i; ++pLookup, --i)
     {
         if (pLookup->pName == pName)
         {
-            return (pxInterface *)(((char *)pObject - pLookup->offset));
+            return (pxInterface *)(((char *)ppxObject) - pLookup->interfaceOffset);
         }
     }
 
     // if we got here, there was no such interface
     return NULL;
 }
-

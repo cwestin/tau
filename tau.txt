@@ -1,6 +1,4 @@
-(*) Use virtual data in pxInterface for pxObjectOffset
-
-(*) Use virtual data in pxObject for metadata
+(*) add const in front of second interface typedef name?
 
 (*) add destroy() to pxObject interface
 

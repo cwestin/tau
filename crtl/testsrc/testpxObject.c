@@ -18,83 +18,76 @@
 #endif
 
 
-struct fooInterface;
-
-typedef struct
+// this is how you declare an interface
+typedef struct pxFooVt
 {
-    PXINTERFACE_GET(fooInterface);
-    void (*f)(struct fooInterface *const pFoo, int i);
-} fooInterfaceVt;
+    pxInterfaceVt interfaceVt;
+    void (*f)(struct pxFooVt *const *const pFoo, int i);
+} pxFooVt, *const pxFoo;
 
-typedef struct
+static const char pxFooName[] = "pxFooName";
+
+#define PXFOO_F(pI, i) \
+    ((*(*(pI))->f)(pI, i))
+
+
+// this is how you build an object that implements that interface
+typedef struct MyObject
 {
-    pxObjectInterfacePrefix prefix;
-    fooInterfaceVt vt;
-} fooInterfaceMeta;
-
-typedef struct fooInterface
-{
-    const fooInterfaceVt *pVt;
-} fooInterface;
-
-static const char fooInterfaceName[] = "fooInterfaceName";
-
-typedef struct myObject
-{
-    const fooInterfaceVt *pFooVt;
+    const pxFooVt *pFooVt;
     const pxObjectVt *pObjectVt;
     int i;
-} myObject;
+} MyObject;
 
-static void myObject_f(fooInterface *const pFoo, int i)
+static void MyObject_f(pxFoo *const pFoo, int i)
 {
-    myObject *const pThis = PXINTERFACE_OBJECT(pFoo, myObject, pFooVt);
+    MyObject *const pThis = PXINTERFACE_STRUCT(pFoo, MyObject, pFooVt);
 
     pThis->i += i;
 }
 
-static const fooInterfaceMeta fooMeta =
+static const pxFooVt fooVt =
 {
-    {offsetof(myObject, pObjectVt) - offsetof(myObject, pFooVt)},
-    { 
-        PXOBJECT_GETINTERFACE(fooInterface),
-        myObject_f,
-    }
+    {
+        offsetof(MyObject, pObjectVt) - offsetof(MyObject, pFooVt),
+        pxObject_getInterface,
+    },
+    MyObject_f,
 };
 
 
 static const pxObjectLookup interfaceTable[] =
 {
-    {fooInterfaceName, offsetof(myObject, pObjectVt) - offsetof(myObject, pFooVt)},
+    {pxFooName, offsetof(MyObject, pObjectVt) - offsetof(MyObject, pFooVt)},
     {pxObjectName, 0},
 };
 
-static const pxObjectObjectMeta objectObjectMeta =
+static const pxObjectVt objectVt =
 {
+    {
+        0,
+        pxObject_getInterface,
+    },
     sizeof(interfaceTable)/sizeof(interfaceTable[0]),
     interfaceTable,
-    {
-        {0},
-        {
-            PXOBJECT_GETINTERFACE(pxObject),
-            NULL, // TODO
-        },
-    },
+    NULL, // TODO
 };
 
 static void testpxObject()
 {
-    myObject *const pM = (myObject *)malloc(sizeof(myObject));
-    pM->pFooVt = &fooMeta.vt;
-    pM->pObjectVt = &objectObjectMeta.objectMeta.vt;
-
+    // initialize the object
+    MyObject *const pM = (MyObject *)malloc(sizeof(MyObject));
+    pM->pFooVt = &fooVt;
+    pM->pObjectVt = &objectVt;
     pM->i = 0;
 
-    fooInterface *const pFoo = (fooInterface *)&pM->pFooVt;
-    (*pFoo->pVt->f)(pFoo, 1);
+    // try calling a method
+    pxFoo *const pFoo = (pxFoo *)&pM->pFooVt;
+    PXFOO_F(pFoo, 1);
     if (pM->i != 1)
         fprintf(stderr, "foo interface increment failed\n");
 
+    // check on the object interface implementation
     pxObject *const pObject = (pxObject *)&pM->pObjectVt;
 
     pxObject *const pObject2 = PXINTERFACE_getInterface(pObject, pxObject);
@@ -105,9 +98,9 @@ static void testpxObject()
     if (pObject3 != pObject)
         fprintf(stderr, "pxObject interface request failure\n");
 
-    fooInterface *const pFoo2 = PXINTERFACE_getInterface(pObject, fooInterface);
+    pxFoo *const pFoo2 = PXINTERFACE_getInterface(pObject, pxFoo);
     if (pFoo2 != pFoo)
-        fprintf(stderr, "fooInterface interface recovery failure\n");
+        fprintf(stderr, "pxFoo interface recovery failure\n");
 
     free(pM);
 }

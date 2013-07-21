@@ -7,51 +7,28 @@
 #endif
 
 
-struct pxObject;
-
 typedef struct
 {
-    PXINTERFACE_GET(pxObject);
-    void (*addMixin)(const struct pxObject *const pThis,
-                     const pxInterface *const pOther);
-} pxObjectVt;
+    const char *const pName;
+    int interfaceOffset; // offset from Object interface to other interface
+} pxObjectLookup;
 
-typedef struct pxObject
+typedef struct pxObjectVt
 {
-    const pxObjectVt *pVt;
-} pxObject;
+    pxInterfaceVt interfaceVt;
+
+    size_t nLookup;
+    const pxObjectLookup *pLookup;
+
+    // TODO
+    void (*addMixin)(struct pxObjectVt *const *const pObject,
+                     const pxInterface *const pOther);
+} pxObjectVt, *const pxObject;
 
 extern const char pxObjectName[];
 
 
-typedef struct
-{
-    int objectOffset;
-} pxObjectInterfacePrefix;
-
-typedef struct
-{
-    pxObjectInterfacePrefix prefix;
-    pxObjectVt vt;
-} pxObjectMeta;
-
-pxInterface *pxObjectGetInterface(
-    const pxInterface *const pI, const char *const pName);
-
-#define PXOBJECT_GETINTERFACE(iName) \
-    ((pxInterface *(*)(const iName *const, const char *const))pxObjectGetInterface)
-
-typedef struct
-{
-    const char *const pName;
-    int offset;
-} pxObjectLookup;
-
-typedef struct
-{
-    size_t nLookup;
-    const pxObjectLookup *pLookup;
-    pxObjectMeta objectMeta;
-} pxObjectObjectMeta;
+pxInterface *const pxObject_getInterface(
+    pxInterface *const pI, const char *const pName);
 
 #endif // PXOBJECT_H

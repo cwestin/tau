@@ -7,19 +7,12 @@
 #endif
 
 
-struct pxMinder;
-
-typedef struct
+typedef struct pxMinderVt
 {
-    PXINTERFACE_GET(pxMinder);
+    pxInterfaceVt interfaceVt;
 
-    struct pxObject *(*register)(struct pxMinder *pMinder, struct pxObject *pManaged);
-} pxMinderVt;
-
-typedef struct pxMinder
-{
-    const pxMinderVt *pVt;
-} pxMinder;
+    struct pxObject *(*register)(struct pxMinderVt *const *const pMinder, struct pxObject *pManaged);
+} pxMinderVt, *const pxMinder;
 
 extern const char pxMinderName[];
 

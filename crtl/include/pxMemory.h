@@ -7,30 +7,23 @@
 #endif
 
 
-struct pxMemory;
-
-typedef struct
+typedef struct pxMemoryVt
 {
-    PXINTERFACE_GET(pxMemory);
+    pxInterfaceVt interfaceVt;
 
 #define PXMEMORY_F_DIRTY      0x0001 // don't clear memory before returning
 #define PXMEMORY_F_RETURN_OOM 0x0002 // return NULL on OOM
-    void *(*alloc)(struct pxMemory *pMemory, size_t size, int flag);
+    void *(*alloc)(struct pxMemoryVt *const *const pMemory, size_t size, int flag);
 
-    void (*free)(struct pxMemory *pMemory, void *p);
-} pxMemoryVt;
-
-typedef struct pxMemory
-{
-    const pxMemoryVt *pVt;
-} pxMemory;
+    void (*free)(struct pxMemoryVt *const *const pMemory, void *p);
+} pxMemoryVt, *const pxMemory;
 
 extern const char pxMemoryName[];
 
-#define PXMEMORY_alloc(pM, size, flag) \
-    ((*(pM)->pVt->alloc)(pM, size, flag))
-#define PXMEMORY_free(pM, p) \
-    ((*(pM)->pVt->free)(pM, p))
+#define PXMEMORY_alloc(pI, size, flag) \
+    ((*(*(pI))->alloc)(pI, size, flag))
+#define PXMEMORY_free(pI, p) \
+    ((*(*(pI))->free)(pI, p))
 
 
 pxMemory *pxMemorySystemGet();
