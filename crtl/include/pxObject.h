@@ -31,4 +31,17 @@ extern const char pxObjectName[];
 pxInterface *const pxObject_getInterface(
     pxInterface *const pI, const char *const pName);
 
+
+typedef struct pxObjectStruct
+{
+    const pxObjectVt *pObjectVt;
+    const struct pxObjectStruct *pMixin;
+} pxObjectStruct;
+
+static inline void pxObjectStructInit(pxObjectStruct *pOS, const pxObjectVt *pVt)
+{
+    pOS->pObjectVt = pVt;
+    pOS->pMixin = NULL;
+}
+
 #endif // PXOBJECT_H

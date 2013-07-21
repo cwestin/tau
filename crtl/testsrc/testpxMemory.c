@@ -24,6 +24,7 @@
 
 static void testpxMemorySystem()
 {
+    pxMemorySystemInit();
     pxMemory *const pMemory = pxMemorySystemGet();
 
     pxMemory *const pM2 = PXINTERFACE_getInterface(pMemory, pxMemory);

@@ -32,7 +32,7 @@ There's only one instance of the System memory object
 typedef struct
 {
     const pxMemoryVt *pMemoryVt;
-    const pxObjectVt *pObjectVt;
+    pxObjectStruct objectStruct;
 } pxMemorySystem_s;
 
 static void *pxMemorySystem_alloc(
@@ -68,7 +68,7 @@ static void pxMemorySystem_free(pxMemory *const pMemory, void *p)
 static const pxMemoryVt memorySystemVt =
 {
     {
-        offsetof(pxMemorySystem_s, pObjectVt) - offsetof(pxMemorySystem_s, pMemoryVt),
+        offsetof(pxMemorySystem_s, objectStruct.pObjectVt) - offsetof(pxMemorySystem_s, pMemoryVt),
         pxObject_getInterface,
     },
     pxMemorySystem_alloc,
@@ -77,7 +77,7 @@ static const pxMemoryVt memorySystemVt =
 
 static const pxObjectLookup memorySystemTable[] =
 {
-    {pxMemoryName, offsetof(pxMemorySystem_s, pObjectVt) - offsetof(pxMemorySystem_s, pMemoryVt)},
+    {pxMemoryName, offsetof(pxMemorySystem_s, objectStruct.pObjectVt) - offsetof(pxMemorySystem_s, pMemoryVt)},
     {pxObjectName, 0},
 };
 
@@ -92,13 +92,23 @@ static const pxObjectVt memorySystemObjectVt =
     NULL, // TODO
 };
 
-static const pxMemorySystem_s pxMemorySystem_i =
+static pxMemory *pxMemorySystemCreate()
 {
-    &memorySystemVt,
-    &memorySystemObjectVt,
-};
+    pxMemorySystem_s *ppxMemorySystem_i =
+        (pxMemorySystem_s *)malloc(sizeof(pxMemorySystem_s));
+    ppxMemorySystem_i->pMemoryVt = &memorySystemVt;
+    pxObjectStructInit(&ppxMemorySystem_i->objectStruct, &memorySystemObjectVt);
+    return (pxMemory *)&ppxMemorySystem_i->pMemoryVt;
+}
+
+static pxMemory *pMemory;
+
+void pxMemorySystemInit()
+{
+    pMemory = pxMemorySystemCreate();
+}
 
 pxMemory *pxMemorySystemGet()
 {
-    return (pxMemory *)&pxMemorySystem_i.pMemoryVt;
+    return pMemory;
 }

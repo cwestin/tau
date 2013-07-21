@@ -26,6 +26,7 @@ extern const char pxMemoryName[];
     ((*(*(pI))->free)(pI, p))
 
 
+void pxMemorySystemInit();
 pxMemory *pxMemorySystemGet();
 
 #endif // PXMEMORY_H
