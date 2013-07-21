@@ -37,7 +37,7 @@ typedef struct fooInterface
     const fooInterfaceVt *pVt;
 } fooInterface;
 
-static const char fooName[] = "foo";
+static const char fooInterfaceName[] = "fooInterfaceName";
 
 typedef struct myObject
 {
@@ -65,7 +65,7 @@ static const fooInterfaceMeta fooMeta =
 
 static const pxObjectLookup interfaceTable[] =
 {
-    {fooName, offsetof(myObject, pObjectVt) - offsetof(myObject, pFooVt)},
+    {fooInterfaceName, offsetof(myObject, pObjectVt) - offsetof(myObject, pFooVt)},
     {pxObjectName, 0},
 };
 
@@ -97,19 +97,15 @@ static void testpxObject()
 
     pxObject *const pObject = (pxObject *)&pM->pObjectVt;
 
-    pxObject *const pObject2 =
-        //(pxObject *)(*pObject->pVt->getInterface)(pObject, pxObjectName);
-        PXINTERFACE_getInterface(pObject, pxObject);
+    pxObject *const pObject2 = PXINTERFACE_getInterface(pObject, pxObject);
     if (pObject2 != pObject)
         fprintf(stderr, "pxObject interface recovery failure\n");
 
-    pxObject *const pObject3 =
-        (pxObject *)(*pFoo->pVt->getInterface)(pFoo, pxObjectName);
+    pxObject *const pObject3 = PXINTERFACE_getInterface(pFoo, pxObject);
     if (pObject3 != pObject)
         fprintf(stderr, "pxObject interface request failure\n");
 
-    fooInterface *const pFoo2 =
-        (fooInterface *)(*pObject->pVt->getInterface)(pObject, fooName);
+    fooInterface *const pFoo2 = PXINTERFACE_getInterface(pObject, fooInterface);
     if (pFoo2 != pFoo)
         fprintf(stderr, "fooInterface interface recovery failure\n");
 

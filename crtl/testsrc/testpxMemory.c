@@ -26,14 +26,14 @@ static void testpxMemorySystem()
 {
     pxMemory *const pMemory = pxMemorySystemGet();
 
-    pxMemory *const pM2 = (pxMemory *)(*pMemory->pVt->getInterface)(pMemory, pxMemoryName);
+    pxMemory *const pM2 = PXINTERFACE_getInterface(pMemory, pxMemory);
     if (pM2 != pMemory)
         fprintf(stderr, "pxMemory interface recovery failure\n");
 
-    pxObject *const pObject = (pxObject *)(*pMemory->pVt->getInterface)(pMemory, pxObjectName);
+    pxObject *const pObject = PXINTERFACE_getInterface(pMemory, pxObject);
     if (pObject == NULL)
         fprintf(stderr, "pxObject interface request failure\n");
-    pxMemory *const pM3 = (pxMemory *)(*pObject->pVt->getInterface)(pObject, pxMemoryName);
+    pxMemory *const pM3 = PXINTERFACE_getInterface(pObject, pxMemory);
     if (pM3 != pMemory)
         fprintf(stderr, "pxMemory interface recovery failure\n");
 
