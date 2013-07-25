@@ -16,6 +16,8 @@
 #endif
 
 
+const char pxMinderName[] = "pxMinder";
+
 typedef struct
 {
     const pxMinderVt *pMinderVt;
