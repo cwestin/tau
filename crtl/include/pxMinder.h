@@ -6,16 +6,29 @@
 #include "pxInterface.h"
 #endif
 
+struct pxObject;
+struct pxMemory;
 
+
+struct pxMinder;
 typedef struct pxMinderVt
 {
     pxInterfaceVt interfaceVt;
 
-    struct pxObject *(*register)(struct pxMinderVt *const *const pMinder, struct pxObject *pManaged);
-} pxMinderVt, *const pxMinder;
+    struct pxObject *(*_register)(
+        struct pxMinder *pMinder, struct pxObject *pManaged);
+} pxMinderVt;
+
+typedef struct pxMinder
+{
+    const pxMinderVt *const pVt;
+} pxMinder;
 
 extern const char pxMinderName[];
 
-pxMinder *pxMinderCreate();
+#define PXMINDER_register(pI, pManaged) \
+    ((*(*(pI))->_register)(pI, pManaged))
+
+pxMinder *pxMinderCreate(struct pxMemory *pArena);
 
 #endif // PXMINDER_H

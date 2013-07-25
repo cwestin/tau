@@ -78,12 +78,23 @@ static inline pxDllLink *pxDllGetNext(
     return pLink->pNext == pThis ? NULL : pLink->pNext;
 }
 
+static inline pxDllLink *pxDllGetPrevious(
+    const pxDllHead *pThis, const pxDllLink *pLink)
+{
+    return pLink->pPrevious == pThis ? NULL : pLink->pPrevious;
+}
+
 static inline pxDllLink *pxDllGetFirst(const pxDllHead *pThis)
 {
     return pxDllGetNext(pThis, pThis);
 }
 
-#define pxDllGetStruct(pThis, structName, linkName) \
+static inline pxDllLink *pxDllGetLast(const pxDllHead *pThis)
+{
+    return pxDllGetPrevious(pThis, pThis);
+}
+
+#define PXDLL_STRUCT(pThis, structName, linkName) \
     ((structName *)(((char *)pThis) - offsetof(structName, linkName)))
 
 

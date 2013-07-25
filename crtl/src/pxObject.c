@@ -3,19 +3,25 @@
 #include "pxObject.h"
 #endif
 
+#ifndef PX_STDLIB_H
+#include <stdlib.h> // only for exit()
+#define PX_STDLIB_H
+#endif
+
+
 const char pxObjectName[] = "pxObject";
 
-pxInterface *const pxObject_getInterface(
-    pxInterface *const pI, const char *const pName)
+pxInterface *pxObject_getInterface(pxInterface *pI, const char *const pName)
 {
-    const pxObject *const ppxObject =
-        (const pxObject *const)(((char *)pI) + (*pI)->pxObjectOffset);
-    const pxObjectLookup *pLookup = (*ppxObject)->pLookup;
-    for(int i = (*ppxObject)->nLookup; i; ++pLookup, --i)
+    pxObject *const ppxObject =
+        (pxObject *)(((char *)pI) + pI->pVt->pxObjectOffset);
+    const pxObjectLookup *pLookup = ppxObject->pVt->pLookup;
+    for(int i = ppxObject->pVt->nLookup; i; ++pLookup, --i)
     {
         if (pLookup->pName == pName)
         {
-            return (pxInterface *)(((char *)ppxObject) - pLookup->interfaceOffset);
+            return (pxInterface *)
+                (((char *)ppxObject) - pLookup->interfaceOffset);
         }
     }
 
@@ -23,17 +29,18 @@ pxInterface *const pxObject_getInterface(
     return NULL;
 }
 
-void pxObject_destroy(pxObject *const pI)
+void pxObject_destroy(pxObject *pI)
 {
-    pxObjectStruct *const pO = PXINTERFACE_STRUCT(pI, pxObjectStruct, pObjectVt);
+    pxObjectStruct *const pThis =
+        PXINTERFACE_STRUCT(pI, pxObjectStruct, pObjectVt);
 
     // mixins have to be destroyed in the reverse order, so reverse the list
     pxObjectStruct *pMixinList = NULL;
     pxObjectStruct *pNextMixin;
-    while((pNextMixin = pO->pNextMixin))
+    while((pNextMixin = pThis->pNextMixin))
     {
         // move it from this object's list to the local list
-        pO->pNextMixin = pNextMixin->pNextMixin;
+        pThis->pNextMixin = pNextMixin->pNextMixin;
         pNextMixin->pNextMixin = pMixinList;
         pMixinList = pNextMixin;
     }
@@ -41,16 +48,19 @@ void pxObject_destroy(pxObject *const pI)
     // destroy the mixins
     while((pNextMixin = pMixinList))
     {
-        PXOBJECT_destroy(&pNextMixin->pObjectVt);
+        PXOBJECT_destroy((pxObject *)&pNextMixin->pObjectVt);
 
         // remove the destroyed one from the list
         pMixinList = pNextMixin->pNextMixin;
     }
 }
 
-void pxObject_addMixin(pxObject *const pI, pxInterface *pOther)
+void pxObject_addMixin(pxObject *pI, pxInterface *pOther)
 {
-    pxObjectStruct *const pO = PXINTERFACE_STRUCT(pI, pxObjectStruct, pObjectVt);
+/* TODO(cwestin)
+    pxObjectStruct *const pThis =
+        PXINTERFACE_STRUCT(pI, pxObjectStruct, pObjectVt);
+*/
 
     // add to end of list
     // modify controlling interface

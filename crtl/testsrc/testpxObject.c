@@ -19,16 +19,22 @@
 
 
 // this is how you declare an interface
+struct pxFoo;
 typedef struct pxFooVt
 {
     pxInterfaceVt interfaceVt;
-    void (*f)(struct pxFooVt *const *const pFoo, int i);
-} pxFooVt, *const pxFoo;
+    void (*f)(struct pxFoo *pFoo, int i);
+} pxFooVt;
+
+typedef struct pxFoo
+{
+    const pxFooVt *const pVt;
+} pxFoo;
 
 static const char pxFooName[] = "pxFooName";
 
 #define PXFOO_F(pI, i) \
-    ((*(*(pI))->f)(pI, i))
+    ((*(pI)->pVt->f)(pI, i))
 
 
 // this is how you build an object that implements that interface
@@ -39,7 +45,7 @@ typedef struct MyObject
     int i;
 } MyObject;
 
-static void MyObject_f(pxFoo *const pFoo, int i)
+static void MyObject_f(pxFoo *pFoo, int i)
 {
     MyObject *const pThis = PXINTERFACE_STRUCT(pFoo, MyObject, pFooVt);
 

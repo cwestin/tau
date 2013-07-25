@@ -48,7 +48,7 @@ static void testpxDll()
         if (pLink == NULL)
             break;
 
-        IntStruct *pI = pxDllGetStruct(pLink, IntStruct, link);
+        IntStruct *pI = PXDLL_STRUCT(pLink, IntStruct, link);
         if (pI->x != i)
             fprintf(stderr, "testpxdll: invalid value in list\n");
 

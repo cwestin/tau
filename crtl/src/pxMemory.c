@@ -35,8 +35,7 @@ typedef struct
     pxObjectStruct objectStruct;
 } pxMemorySystem_s;
 
-static void *pxMemorySystem_alloc(
-    pxMemory *const pMemory, size_t size, int flag)
+static void *pxMemorySystem_alloc(pxMemory *pMemory, size_t size, int flag)
 {
     void *p = malloc(size);
     if (p == NULL)
@@ -54,7 +53,7 @@ static void *pxMemorySystem_alloc(
     return p;
 }
 
-static void pxMemorySystem_free(pxMemory *const pMemory, void *p)
+static void pxMemorySystem_free(pxMemory *pMemory, void *p)
 {
     if (p == NULL)
     {
@@ -95,7 +94,7 @@ static const pxObjectVt memorySystemObjectVt =
 
 static pxMemory *pxMemorySystemCreate()
 {
-    pxMemorySystem_s *ppxMemorySystem_i =
+    pxMemorySystem_s *const ppxMemorySystem_i =
         (pxMemorySystem_s *)malloc(sizeof(pxMemorySystem_s));
     ppxMemorySystem_i->pMemoryVt = &memorySystemVt;
     pxObjectStructInit(&ppxMemorySystem_i->objectStruct, &memorySystemObjectVt);

@@ -13,6 +13,7 @@ typedef struct
     int interfaceOffset; // offset from Object interface to other interface
 } pxObjectLookup;
 
+struct pxObject;
 typedef struct pxObjectVt
 {
     pxInterfaceVt interfaceVt;
@@ -20,21 +21,27 @@ typedef struct pxObjectVt
     size_t nLookup;
     const pxObjectLookup *pLookup;
 
-    void (*destroy)(struct pxObjectVt *const *const pObject);
-    void (*addMixin)(struct pxObjectVt *const *const pObject,
+    void (*destroy)(struct pxObject *pObject);
+    void (*addMixin)(struct pxObject *pObject,
                      pxInterface *const pOther);
-} pxObjectVt, *const pxObject;
+} pxObjectVt;
+
+typedef struct pxObject
+{
+    const pxObjectVt *const pVt;
+} pxObject;
 
 extern const char pxObjectName[];
 
 #define PXOBJECT_destroy(pI) \
-    ((*(*(pI))->destroy)(pI))
+    ((*(pI)->pVt->destroy)(pI))
 
 #define PXOBJECT_addMixin(pI, pOther) \
-    ((*(*(pI))->addMixin)(pI, pOther)
+    ((*(pI)->pVt->addMixin)(pI, pOther))
 
-pxInterface *const pxObject_getInterface(
-    pxInterface *const pI, const char *const pName);
+
+pxInterface *pxObject_getInterface(
+    pxInterface *pI, const char *const pName);
 
 void pxObject_destroy(pxObject *const pI);
 
@@ -43,10 +50,11 @@ void pxObject_addMixin(pxObject *const pI, pxInterface *const pOther);
 typedef struct pxObjectStruct
 {
     const pxObjectVt *pObjectVt;
-    const struct pxObjectStruct *pNextMixin;
+    struct pxObjectStruct *pNextMixin;
 } pxObjectStruct;
 
-static inline void pxObjectStructInit(pxObjectStruct *pOS, const pxObjectVt *pVt)
+static inline void pxObjectStructInit(
+    pxObjectStruct *pOS, const pxObjectVt *pVt)
 {
     pOS->pObjectVt = pVt;
     pOS->pNextMixin = NULL;
