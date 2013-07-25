@@ -1,18 +1,19 @@
-(*) Implement pxMemoryLinked
+(*) Define pxAlloc
+- should we redefine pxMemory to aggregate this with pxDealloc?
+
+(*) Implement pxAllocExtent
 
 (*) Add license file
-
-(*) Define file headers
-Add throughout
 
 (*) Implement mixins on pxObject
 Create an arena with a pxMinder aggregated into pxMemoryLinked
 
+(*) Define file headers
+Add throughout
+
 (*) add clone to pxObject
 - requires hash table to deal with cycles
   - requires hasher object and hashable interface
-
-(*) Implement pxMemoryExtent
 
 (*) Implement pxLoom
 Test producer/consumer pattern
@@ -29,4 +30,3 @@ Use aio.h for reading and writing files, integrate with pxLoom
 
 (*) Generate C code for simple program
 Write script to complete build pipeline to generate an executable
-
