@@ -67,29 +67,53 @@ static void testpxMinder()
     pxMinder *pMinder;
     pxObject *pObject;
 
+    // test creating and destroying a minder
     pMinder = pxMinderCreate(pMemory);
     pObject = PXINTERFACE_getInterface(pMinder, pxObject);
     PXOBJECT_destroy(pObject);
 
     MyDestroyable d1, d2;
 
+    // test adding and destroying a single object
     pMinder = pxMinderCreate(pMemory);
     MyDestroyableInit(&d1);
     PXMINDER_register(pMinder, (pxObject *)&d1.objectStruct.pObjectVt);
+
     pObject = PXINTERFACE_getInterface(pMinder, pxObject);
     PXOBJECT_destroy(pObject);
     if (!d1.isDestroyed)
         fprintf(stderr, "testpxMinder: did not destroy d1 (%d)\n", __LINE__);
 
+    // test adding and destroying more than one object
     pMinder = pxMinderCreate(pMemory);
     MyDestroyableInit(&d1);
     PXMINDER_register(pMinder, (pxObject *)&d1.objectStruct.pObjectVt);
     MyDestroyableInit(&d2);
     PXMINDER_register(pMinder, (pxObject *)&d2.objectStruct.pObjectVt);
+
     pObject = PXINTERFACE_getInterface(pMinder, pxObject);
     PXOBJECT_destroy(pObject);
     if (!d1.isDestroyed)
         fprintf(stderr, "testpxMinder: did not destroy d1 (%d)\n", __LINE__);
+    if (!d2.isDestroyed)
+        fprintf(stderr, "testpxMinder: did not destroy d2 (%d)\n", __LINE__);
+
+    pxObject *pu1;
+
+    // test adding multiple objects, but deregistering one before destroying
+    pMinder = pxMinderCreate(pMemory);
+    MyDestroyableInit(&d1);
+    pu1 = PXMINDER_register(pMinder, (pxObject *)&d1.objectStruct.pObjectVt);
+    MyDestroyableInit(&d2);
+    PXMINDER_register(pMinder, (pxObject *)&d2.objectStruct.pObjectVt);
+
+    PXOBJECT_destroy(pu1); // deregisters d1
+
+    pObject = PXINTERFACE_getInterface(pMinder, pxObject);
+    PXOBJECT_destroy(pObject);
+    if (d1.isDestroyed)
+        fprintf(stderr, "testpxMinder: incorrectly destroyed d1 (%d)\n",
+                __LINE__);
     if (!d2.isDestroyed)
         fprintf(stderr, "testpxMinder: did not destroy d2 (%d)\n", __LINE__);
 }
