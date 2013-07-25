@@ -35,7 +35,7 @@ typedef struct
     pxDllLink link;
 } minderObject;
 
-static void minderObject_destroy(pxObject *const pI)
+static void minderObject_destroy(pxObject *pI)
 {
     // destroying a minder object is the way to deregister a managed object
     minderObject *const pMO =
