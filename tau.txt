@@ -1,6 +1,3 @@
-(*) Implement pxMinder
-- looks like we need the vt pointer wrapper structs after all
-
 (*) Implement pxMemoryLinked
 
 (*) Add license file
