@@ -28,7 +28,7 @@ typedef struct pxMinder
 extern const char pxMinderName[];
 
 #define PXMINDER_register(pI, pManaged) \
-    ((*(pI)->pVt->_register)(pI, pManaged))
+    ((*(pI)->pVt->_register)((pI), (pManaged)))
 
 pxMinder *pxMinderCreate(struct pxMemory *pArena);
 

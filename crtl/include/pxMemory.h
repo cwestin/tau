@@ -27,9 +27,9 @@ typedef struct pxMemory
 extern const char pxMemoryName[];
 
 #define PXMEMORY_alloc(pI, size, flag) \
-    ((*(pI)->pVt->alloc)(pI, size, flag))
+    ((*(pI)->pVt->alloc)((pI), (size), (flag)))
 #define PXMEMORY_free(pI, p) \
-    ((*(pI)->pVt->free)(pI, p))
+    ((*(pI)->pVt->free)((pI), (p)))
 
 
 void pxMemorySystemInit();

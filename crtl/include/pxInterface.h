@@ -22,7 +22,7 @@ typedef struct pxInterface
 } pxInterface;
 
 #define PXINTERFACE_getInterface(pI, iName) \
-    ((iName *)((*(pI)->pVt->interfaceVt.getInterface)((pxInterface *const)(pI), iName ## Name)))
+    ((iName *)((*(pI)->pVt->interfaceVt.getInterface)((pxInterface *)(pI), iName ## Name)))
 
 
 #define PXINTERFACE_STRUCT(pI, sname, vtname) \

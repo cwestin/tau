@@ -1,5 +1,6 @@
 (*) Define pxAlloc
 - should we redefine pxMemory to aggregate this with pxDealloc?
+- change pxMinder to use pxAlloc
 
 (*) Implement pxAllocExtent
 
