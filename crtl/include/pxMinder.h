@@ -7,7 +7,7 @@
 #endif
 
 struct pxObject;
-struct pxMemory;
+struct pxAlloc;
 
 
 struct pxMinder;
@@ -30,6 +30,6 @@ extern const char pxMinderName[];
 #define PXMINDER_register(pI, pManaged) \
     ((*(pI)->pVt->_register)((pI), (pManaged)))
 
-pxMinder *pxMinderCreate(struct pxMemory *pArena);
+pxMinder *pxMinderCreate(struct pxAlloc *pAlloc);
 
 #endif // PXMINDER_H

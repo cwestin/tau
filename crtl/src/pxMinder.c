@@ -3,12 +3,12 @@
 #include "pxMinder.h"
 #endif
 
-#ifndef PXDLL_H
-#include "pxDll.h"
+#ifndef PXALLOC_H
+#include "pxAlloc.h"
 #endif
 
-#ifndef PXMEMORY_H
-#include "pxMemory.h"
+#ifndef PXDLL_H
+#include "pxDll.h"
 #endif
 
 #ifndef PXOBJECT_H
@@ -23,7 +23,7 @@ typedef struct
     const pxMinderVt *pMinderVt;
     pxObjectStruct objectStruct;
 
-    pxMemory *pArena; // the arena to use to allocate registered items
+    pxAlloc *pAlloc; // the arena to use to allocate registered items
     pxDllHead list; // the list of items to mind
 } pxMinder_s;
 
@@ -70,7 +70,7 @@ static pxObject *pxMinder_register(pxMinder *pI, pxObject *pManaged)
 
     // allocate a place to hang on to this
     minderObject *const pMO = (minderObject *)
-        PXMEMORY_alloc(pThis->pArena, sizeof(*pMO), PXMEMORY_F_DIRTY);
+        PXALLOC_alloc(pThis->pAlloc, sizeof(*pMO), PXALLOC_F_DIRTY);
 
     // initialize
     pxObjectStructInit(&pMO->objectStruct, &minderObjectObjectVt);
@@ -130,15 +130,15 @@ static const pxObjectVt minderObjectVt =
 };
 
 
-pxMinder *pxMinderCreate(pxMemory *pArena)
+pxMinder *pxMinderCreate(pxAlloc *pAlloc)
 {
     pxMinder_s *const pMinder =
-        PXMEMORY_alloc(pArena, sizeof(*pMinder), PXMEMORY_F_DIRTY);
+        PXALLOC_alloc(pAlloc, sizeof(*pMinder), PXALLOC_F_DIRTY);
 
     pMinder->pMinderVt = &minderVt;
     pxObjectStructInit(&pMinder->objectStruct, &minderObjectVt);
 
-    pMinder->pArena = pArena;
+    pMinder->pAlloc = pAlloc;
     pxDllInit(&pMinder->list);
 
     return (pxMinder *)&pMinder->pMinderVt;

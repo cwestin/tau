@@ -3,8 +3,12 @@
 #include "pxMinder.h"
 #endif
 
-#ifndef PXMEMORY_H
-#include "pxMemory.h"
+#ifndef PXALLOC_H
+#include "pxAlloc.h"
+#endif
+
+#ifndef PXALLOCSYSTEM_H
+#include "pxAllocSystem.h"
 #endif
 
 #ifndef PXOBJECT_H
@@ -63,19 +67,19 @@ static void MyDestroyableInit(MyDestroyable *pMD)
 
 static void testpxMinder()
 {
-    pxMemory *const pMemory = pxMemorySystemGet();
+    pxAlloc *const pAlloc = pxAllocSystemGet();
     pxMinder *pMinder;
     pxObject *pObject;
 
     // test creating and destroying a minder
-    pMinder = pxMinderCreate(pMemory);
+    pMinder = pxMinderCreate(pAlloc);
     pObject = PXINTERFACE_getInterface(pMinder, pxObject);
     PXOBJECT_destroy(pObject);
 
     MyDestroyable d1, d2;
 
     // test adding and destroying a single object
-    pMinder = pxMinderCreate(pMemory);
+    pMinder = pxMinderCreate(pAlloc);
     MyDestroyableInit(&d1);
     PXMINDER_register(pMinder, (pxObject *)&d1.objectStruct.pObjectVt);
 
@@ -85,7 +89,7 @@ static void testpxMinder()
         fprintf(stderr, "testpxMinder: did not destroy d1 (%d)\n", __LINE__);
 
     // test adding and destroying more than one object
-    pMinder = pxMinderCreate(pMemory);
+    pMinder = pxMinderCreate(pAlloc);
     MyDestroyableInit(&d1);
     PXMINDER_register(pMinder, (pxObject *)&d1.objectStruct.pObjectVt);
     MyDestroyableInit(&d2);
@@ -101,7 +105,7 @@ static void testpxMinder()
     pxObject *pu1;
 
     // test adding multiple objects, but deregistering one before destroying
-    pMinder = pxMinderCreate(pMemory);
+    pMinder = pxMinderCreate(pAlloc);
     MyDestroyableInit(&d1);
     pu1 = PXMINDER_register(pMinder, (pxObject *)&d1.objectStruct.pObjectVt);
     MyDestroyableInit(&d2);
@@ -120,7 +124,7 @@ static void testpxMinder()
 
 int main(void)
 {
-    pxMemorySystemInit();
+    pxAllocSystemInit();
     testpxMinder();
     return 0;
 }
