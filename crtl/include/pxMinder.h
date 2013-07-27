@@ -15,7 +15,7 @@ typedef struct pxMinderVt
 {
     pxInterfaceVt interfaceVt;
 
-    // the underscore gets around this being a reserved word
+    // the underscore gets around "register" being a reserved word
     struct pxObject *(*_register)(
         struct pxMinder *pMinder, struct pxObject *pManaged);
 } pxMinderVt;
@@ -30,6 +30,6 @@ extern const char pxMinderName[];
 #define PXMINDER_register(pI, pManaged) \
     ((*(pI)->pVt->_register)((pI), (pManaged)))
 
-pxMinder *pxMinderCreate(struct pxAlloc *pAlloc);
+pxMinder *pxMinderCreate(struct pxAlloc *pAlloc, struct pxInterface *pOwner);
 
 #endif // PXMINDER_H

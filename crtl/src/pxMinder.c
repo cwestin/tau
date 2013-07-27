@@ -61,7 +61,6 @@ static const pxObjectVt minderObjectObjectVt =
     sizeof(minderObjectObjectTable)/sizeof(minderObjectObjectTable[0]),
     minderObjectObjectTable,
     minderObject_destroy,
-    pxObject_addMixin,
 };
 
 static pxObject *pxMinder_register(pxMinder *pI, pxObject *pManaged)
@@ -73,7 +72,7 @@ static pxObject *pxMinder_register(pxMinder *pI, pxObject *pManaged)
         PXALLOC_alloc(pThis->pAlloc, sizeof(*pMO), PXALLOC_F_DIRTY);
 
     // initialize
-    pxObjectStructInit(&pMO->objectStruct, &minderObjectObjectVt);
+    pxObjectStructInit(&pMO->objectStruct, &minderObjectObjectVt, NULL);
     pMO->pManaged = pManaged;
     pxDllAddAfter(&pMO->link, &pThis->list);
 
@@ -126,17 +125,16 @@ static const pxObjectVt minderObjectVt =
     sizeof(minderObjectTable)/sizeof(minderObjectTable[0]),
     minderObjectTable,
     minder_destroy,
-    pxObject_addMixin,
 };
 
 
-pxMinder *pxMinderCreate(pxAlloc *pAlloc)
+pxMinder *pxMinderCreate(pxAlloc *pAlloc, pxInterface *pOwner)
 {
     pxMinder_s *const pMinder =
         PXALLOC_alloc(pAlloc, sizeof(*pMinder), PXALLOC_F_DIRTY);
 
     pMinder->pMinderVt = &minderVt;
-    pxObjectStructInit(&pMinder->objectStruct, &minderObjectVt);
+    pxObjectStructInit(&pMinder->objectStruct, &minderObjectVt, pOwner);
 
     pMinder->pAlloc = pAlloc;
     pxDllInit(&pMinder->list);

@@ -55,12 +55,11 @@ static const pxObjectVt myDestroyableObjectVt =
     sizeof(myDestroyableTable)/sizeof(myDestroyableTable[0]),
     myDestroyableTable,
     MyDestroyable_destroy,
-    pxObject_addMixin,
 };
 
 static void MyDestroyableInit(MyDestroyable *pMD)
 {
-    pxObjectStructInit(&pMD->objectStruct, &myDestroyableObjectVt);
+    pxObjectStructInit(&pMD->objectStruct, &myDestroyableObjectVt, NULL);
     pMD->isDestroyed = false;
 }
 
@@ -72,14 +71,14 @@ static void testpxMinder()
     pxObject *pObject;
 
     // test creating and destroying a minder
-    pMinder = pxMinderCreate(pAlloc);
+    pMinder = pxMinderCreate(pAlloc, NULL);
     pObject = PXINTERFACE_getInterface(pMinder, pxObject);
     PXOBJECT_destroy(pObject);
 
     MyDestroyable d1, d2;
 
     // test adding and destroying a single object
-    pMinder = pxMinderCreate(pAlloc);
+    pMinder = pxMinderCreate(pAlloc, NULL);
     MyDestroyableInit(&d1);
     PXMINDER_register(pMinder, (pxObject *)&d1.objectStruct.pObjectVt);
 
@@ -89,7 +88,7 @@ static void testpxMinder()
         fprintf(stderr, "testpxMinder: did not destroy d1 (%d)\n", __LINE__);
 
     // test adding and destroying more than one object
-    pMinder = pxMinderCreate(pAlloc);
+    pMinder = pxMinderCreate(pAlloc, NULL);
     MyDestroyableInit(&d1);
     PXMINDER_register(pMinder, (pxObject *)&d1.objectStruct.pObjectVt);
     MyDestroyableInit(&d2);
@@ -105,7 +104,7 @@ static void testpxMinder()
     pxObject *pu1;
 
     // test adding multiple objects, but deregistering one before destroying
-    pMinder = pxMinderCreate(pAlloc);
+    pMinder = pxMinderCreate(pAlloc, NULL);
     MyDestroyableInit(&d1);
     pu1 = PXMINDER_register(pMinder, (pxObject *)&d1.objectStruct.pObjectVt);
     MyDestroyableInit(&d2);

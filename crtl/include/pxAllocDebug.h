@@ -34,6 +34,7 @@ extern const char pxAllocDebugName[];
     ((*(pI)->pVt->countPieces)(pI))
 
 // largely for testing and debugging
-struct pxAlloc *pxAllocDebugCreate(struct pxAlloc *pAlloc);
+struct pxAlloc *pxAllocDebugCreate(
+    struct pxAlloc *pAlloc, struct pxInterface *pOwner);
 
 #endif // PXALLOCDEBUG_H

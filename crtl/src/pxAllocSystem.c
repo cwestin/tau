@@ -101,7 +101,6 @@ static const pxObjectVt pxAllocSystemObjectVt =
     sizeof(pxAllocSystem_lookup)/sizeof(pxAllocSystem_lookup[0]),
     pxAllocSystem_lookup,
     pxObject_destroy,
-    pxObject_addMixin,
 };
 
 static pxAllocSystem_s *pxAllocSystemCreate()
@@ -110,7 +109,8 @@ static pxAllocSystem_s *pxAllocSystemCreate()
         (pxAllocSystem_s *)malloc(sizeof(pxAllocSystem_s));
     ppxAllocSystem_i->pAllocVt = &pxAllocSystemAllocVt;
     ppxAllocSystem_i->pFreeVt = &pxAllocSystemFreeVt;
-    pxObjectStructInit(&ppxAllocSystem_i->objectStruct, &pxAllocSystemObjectVt);
+    pxObjectStructInit(
+        &ppxAllocSystem_i->objectStruct, &pxAllocSystemObjectVt, NULL);
     return ppxAllocSystem_i;
 }
 

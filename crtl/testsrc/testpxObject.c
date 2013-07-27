@@ -77,7 +77,6 @@ static const pxObjectVt objectVt =
     sizeof(interfaceTable)/sizeof(interfaceTable[0]),
     interfaceTable,
     pxObject_destroy,
-    pxObject_addMixin,
 };
 
 static void testpxObject()
@@ -85,7 +84,7 @@ static void testpxObject()
     // initialize the object
     MyObject *const pM = (MyObject *)malloc(sizeof(MyObject));
     pM->pFooVt = &fooVt;
-    pxObjectStructInit(&pM->objectStruct, &objectVt);
+    pxObjectStructInit(&pM->objectStruct, &objectVt, NULL);
     pM->i = 0;
 
     // try calling a method

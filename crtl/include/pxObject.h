@@ -22,7 +22,6 @@ typedef struct pxObjectVt
     const pxObjectLookup *pLookup;
 
     void (*destroy)(struct pxObject *pObject);
-    void (*addMixin)(struct pxObject *pObject, pxInterface *pOther);
 } pxObjectVt;
 
 typedef struct pxObject
@@ -35,28 +34,21 @@ extern const char pxObjectName[];
 #define PXOBJECT_destroy(pI) \
     ((*(pI)->pVt->destroy)((pI)))
 
-#define PXOBJECT_addMixin(pI, pOther) \
-    ((*(pI)->pVt->addMixin)((pI), (pOther)))
-
 
 pxInterface *pxObject_getInterface(
     pxInterface *pI, const char *const pName);
 
 void pxObject_destroy(pxObject *const pI);
 
-void pxObject_addMixin(pxObject *const pI, pxInterface *const pOther);
-
 typedef struct pxObjectStruct
 {
     const pxObjectVt *pObjectVt;
     struct pxObjectStruct *pNextMixin;
+    struct pxObjectStruct *pOwner;
 } pxObjectStruct;
 
-static inline void pxObjectStructInit(
-    pxObjectStruct *pOS, const pxObjectVt *pVt)
-{
-    pOS->pObjectVt = pVt;
-    pOS->pNextMixin = NULL;
-}
+void pxObjectStructInit(
+    pxObjectStruct *pObjectStruct, const pxObjectVt *pVt,
+    pxInterface *pOwner);
 
 #endif // PXOBJECT_H

@@ -195,10 +195,9 @@ static const pxObjectVt pxAllocDebugObjectVt =
     sizeof(pxAllocDebug_lookup)/sizeof(pxAllocDebug_lookup[0]),
     pxAllocDebug_lookup,
     pxAllocDebug_destroy,
-    pxObject_addMixin,
 };
 
-pxAlloc *pxAllocDebugCreate(pxAlloc *pAlloc)
+pxAlloc *pxAllocDebugCreate(pxAlloc *pAlloc, pxInterface *pOwner)
 {
     pxAllocDebug_s *const pAL =
         PXALLOC_alloc(pAlloc, sizeof(pxAllocDebug_s), PXALLOC_F_DIRTY);
@@ -210,7 +209,7 @@ pxAlloc *pxAllocDebugCreate(pxAlloc *pAlloc)
     pAL->pAllocVt = &pxAllocDebugAllocVt;
     pAL->pFreeVt = &pxAllocDebugFreeVt;
     pAL->pAllocDebugVt = &pxAllocDebugAllocDebugVt;
-    pxObjectStructInit(&pAL->objectStruct, &pxAllocDebugObjectVt);
+    pxObjectStructInit(&pAL->objectStruct, &pxAllocDebugObjectVt, pOwner);
 
     return (pxAlloc *)&pAL->pAllocVt;
 }

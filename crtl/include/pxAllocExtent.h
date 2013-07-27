@@ -8,6 +8,10 @@
 #endif
 
 
-struct pxAlloc *pxAllocExtentCreate(struct pxAlloc *pAlloc, size_t initSize);
+struct pxAlloc;
+struct pxInterface;
+
+struct pxAlloc *pxAllocExtentCreate(
+    struct pxAlloc *pAlloc, size_t initSize, struct pxInterface *pOwner);
 
 #endif // PXALLOCEXTENT_H

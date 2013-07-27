@@ -147,10 +147,10 @@ static const pxObjectVt pxAllocExtent_ObjectVt =
     sizeof(pxAllocExtent_lookup)/sizeof(pxAllocExtent_lookup[0]),
     pxAllocExtent_lookup,
     pxAllocExtent_destroy,
-    pxObject_addMixin,
 };
 
-pxAlloc *pxAllocExtentCreate(pxAlloc *pAlloc, size_t initSize)
+pxAlloc *pxAllocExtentCreate(
+    pxAlloc *const pAlloc, size_t initSize, pxInterface *const pOwner)
 {
     // ensure minimum size to make this worthwhile
     if (initSize < sizeof(pxAlignAll))
@@ -161,7 +161,7 @@ pxAlloc *pxAllocExtentCreate(pxAlloc *pAlloc, size_t initSize)
                       offsetof(pxAllocExtent_s, firstExtent.data) + initSize,
                       PXALLOC_F_DIRTY);
     pAE->pAllocVt = &pxAllocExtentAllocVt;
-    pxObjectStructInit(&pAE->objectStruct, &pxAllocExtent_ObjectVt);
+    pxObjectStructInit(&pAE->objectStruct, &pxAllocExtent_ObjectVt, pOwner);
     pAE->pAlloc = pAlloc;
     pxAllocExtent_extentInit(&pAE->firstExtent, initSize);
     pAE->pExtents = &pAE->firstExtent;

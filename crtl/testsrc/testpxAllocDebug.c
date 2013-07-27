@@ -32,8 +32,8 @@
 static void testpxAllocDebug()
 {
     pxAlloc *const pAllocSystem = pxAllocSystemGet();
-    pxAlloc *const pAlloc0 = pxAllocDebugCreate(pAllocSystem);
-    pxAlloc *const pAlloc = pxAllocDebugCreate(pAlloc0);
+    pxAlloc *const pAlloc0 = pxAllocDebugCreate(pAllocSystem, NULL);
+    pxAlloc *const pAlloc = pxAllocDebugCreate(pAlloc0, NULL);
     pxFree *const pFree = PXINTERFACE_getInterface(pAlloc, pxFree);
     pxAllocDebug *const pAllocDebug =
         PXINTERFACE_getInterface(pAlloc, pxAllocDebug);

@@ -32,14 +32,14 @@
 static void testpxAllocExtent()
 {
     pxAlloc *const pAllocS = pxAllocSystemGet();
-    pxAlloc *const pAllocD = pxAllocDebugCreate(pAllocS);
+    pxAlloc *const pAllocD = pxAllocDebugCreate(pAllocS, NULL);
     pxAllocDebug *const pAllocDebug =
         PXINTERFACE_getInterface(pAllocD, pxAllocDebug);
     pxAlloc *pAlloc;
     pxObject *pObject;
 
     // test creation and destruction
-    pAlloc = pxAllocExtentCreate(pAllocD, 1024);
+    pAlloc = pxAllocExtentCreate(pAllocD, 1024, NULL);
     pObject = PXINTERFACE_getInterface(pAlloc, pxObject);
     PXOBJECT_destroy(pObject);
     if (PXALLOCDEBUG_countPieces(pAllocDebug) != 0)
@@ -48,7 +48,7 @@ static void testpxAllocExtent()
         fprintf(stderr, "destruction failed to clean up (%d)\n", __LINE__);
 
     // test allocation within an extent and beyond
-    pAlloc = pxAllocExtentCreate(pAllocD, 1024);
+    pAlloc = pxAllocExtentCreate(pAllocD, 1024, NULL);
     pObject = PXINTERFACE_getInterface(pAlloc, pxObject);
     if (PXALLOCDEBUG_countPieces(pAllocDebug) != 1)
         fprintf(stderr, "incorrect allocated piece count (%d)\n", __LINE__);
