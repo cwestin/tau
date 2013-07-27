@@ -29,6 +29,9 @@
 #endif
 
 
+const char pxAllocDebugName[] = "pxAllocDebug";
+
+
 typedef struct
 {
     pxAlloc *pAlloc;
@@ -107,6 +110,31 @@ static bool pxAllocDebug_isEmpty(pxAllocDebug *pAllocDebug)
     return pxDllIsEmpty(&pThis->list);
 }
 
+static void pxAllocDebug_destroy(pxObject *pObject)
+{
+    pxAllocDebug_s *const pThis =
+        PXINTERFACE_STRUCT(pObject, pxAllocDebug_s, objectStruct.pObjectVt);
+
+    // if the underlying allocator supports freeing, free everything
+    pxFree *const pFree = PXINTERFACE_getInterface(pThis->pAlloc, pxFree);
+    if (pFree)
+    {
+        pxDllLink *pLink;
+        while((pLink = pxDllGetFirst(&pThis->list)))
+        {
+            pxAllocDebug_item *const pItem =
+                PXDLL_STRUCT(pLink, pxAllocDebug_item, link);
+            pxDllRemove(&pItem->link);
+            PXFREE_free(pFree, pItem);
+        }
+    }
+
+    pxObject_destroy(pObject);
+
+    if (pFree)
+        PXFREE_free(pFree, pThis);
+}
+
 static const pxAllocVt pxAllocDebugAllocVt =
 {
     {
@@ -150,7 +178,7 @@ static const pxObjectVt pxAllocDebugObjectVt =
     },
     sizeof(pxAllocDebug_lookup)/sizeof(pxAllocDebug_lookup[0]),
     pxAllocDebug_lookup,
-    pxObject_destroy,
+    pxAllocDebug_destroy,
     pxObject_addMixin,
 };
 

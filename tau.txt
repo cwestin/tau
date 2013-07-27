@@ -1,8 +1,7 @@
-(*) Define pxAlloc
-- should we redefine pxMemory to aggregate this with pxDealloc?
-- change pxMinder to use pxAlloc
+(*) test destroying the system allocator in testpxAllocSystem
 
 (*) Implement pxAllocExtent
+- test using pxAllocLinked
 
 (*) Add license file
 
