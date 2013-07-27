@@ -90,6 +90,9 @@ static void *pxAllocExtent_alloc(pxAlloc *pI, size_t size, int flag)
 
 static void pxAllocExtent_destroy(pxObject *pI)
 {
+    pxAllocExtent_s *const pThis =
+        PXINTERFACE_STRUCT(pI, pxAllocExtent_s, objectStruct.pObjectVt);
+
     // Anything that has been mixed in to this object should have come
     // from the allocator itself, so we need to destroy all of those first.
     // Note this order is unusual.
@@ -98,8 +101,8 @@ static void pxAllocExtent_destroy(pxObject *pI)
     // If the underlying allocator supports deallocation, then use it
     // here on our extents. Take care not to free the last extent, as that
     // points into our own structure.
-    pxFree *const pFree = PXINTERFACE_getInterface(pI, pxFree);
-    if (pFree != NULL)
+    pxFree *const pFree = PXINTERFACE_getInterface(pThis->pAlloc, pxFree);
+    if (pFree)
     {
         pxAllocExtent_s *const pThis =
             PXINTERFACE_STRUCT(pI, pxAllocExtent_s, objectStruct.pObjectVt);

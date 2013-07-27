@@ -67,7 +67,6 @@ static void testpxAllocSystem()
         fprintf(stderr, "destroying the system allocator did something\n");
     p = PXALLOC_alloc(pAlloc, nBytes, 0);
     PXFREE_free(pFree, p);
-    
 }
 
 int main(void)
