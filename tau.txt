@@ -1,17 +1,14 @@
-(*) Implement pxAllocExtent
-- test using pxAllocLinked
-
-(*) Add license file
-
 (*) Implement mixins on pxObject
 Create an arena with a pxMinder aggregated into pxMemoryLinked
-
-(*) Define file headers
-Add throughout
 
 (*) add clone to pxObject
 - requires hash table to deal with cycles
   - requires hasher object and hashable interface
+
+(*) Add license file
+
+(*) Define file headers
+Add throughout
 
 (*) Implement pxLoom
 Test producer/consumer pattern
