@@ -1,5 +1,3 @@
-(*) test destroying the system allocator in testpxAllocSystem
-
 (*) Implement pxAllocExtent
 - test using pxAllocLinked
 
