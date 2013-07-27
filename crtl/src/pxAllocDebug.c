@@ -110,6 +110,21 @@ static bool pxAllocDebug_isEmpty(pxAllocDebug *pAllocDebug)
     return pxDllIsEmpty(&pThis->list);
 }
 
+static unsigned pxAllocDebug_countPieces(pxAllocDebug *pAllocDebug)
+{
+    pxAllocDebug_s *const pThis =
+        PXINTERFACE_STRUCT(pAllocDebug, pxAllocDebug_s, pAllocDebugVt);
+
+    unsigned count = 0;
+    for(pxDllLink *pLink = pxDllGetFirst(&pThis->list); pLink;
+        pLink = pxDllGetNext(&pThis->list, pLink))
+    {
+        ++count;
+    }
+
+    return count;
+}
+
 static void pxAllocDebug_destroy(pxObject *pObject)
 {
     pxAllocDebug_s *const pThis =
@@ -160,6 +175,7 @@ static const pxAllocDebugVt pxAllocDebugAllocDebugVt =
         pxObject_getInterface,
     },
     pxAllocDebug_isEmpty,
+    pxAllocDebug_countPieces,
 };
 
 static const pxObjectLookup pxAllocDebug_lookup[] =

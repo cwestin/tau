@@ -17,7 +17,8 @@ typedef struct pxAllocDebugVt
 {
     pxInterfaceVt interfaceVt;
 
-    bool (*isEmpty)(struct pxAllocDebug *pAL);
+    bool (*isEmpty)(struct pxAllocDebug *pAllocDebug);
+    unsigned (*countPieces)(struct pxAllocDebug *pAllocDebug);
 } pxAllocDebugVt;
 
 typedef struct pxAllocDebug
@@ -29,6 +30,8 @@ extern const char pxAllocDebugName[];
 
 #define PXALLOCDEBUG_isEmpty(pI) \
     ((*(pI)->pVt->isEmpty)(pI))
+#define PXALLOCDEBUG_countPieces(pI) \
+    ((*(pI)->pVt->countPieces)(pI))
 
 // largely for testing and debugging
 struct pxAlloc *pxAllocDebugCreate(struct pxAlloc *pAlloc);
