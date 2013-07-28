@@ -17,7 +17,7 @@ typedef struct
 {
     pxInterfaceVt interfaceVt;
 
-    // methods on here are not virtual (i.e., final)
+    // methods on here are not virtual (i.e., they are final)
 } pxHasherVt;
 
 typedef struct pxHasher
