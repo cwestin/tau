@@ -7,10 +7,16 @@
 #endif
 
 
+struct pxHashable;
+
 struct pxHashMap;
 typedef struct
 {
     pxInterfaceVt interfaceVt;
+
+    pxInterface *(*get)(struct pxHashMap *pI, struct pxHashable *pKey);
+    pxInterface *(*put)(
+        struct pxHashMap *pI, struct pxHashable *pKey, pxInterface *pO);
 } pxHashMapVt;
 
 typedef struct pxHashMap
@@ -20,5 +26,10 @@ typedef struct pxHashMap
 
 extern const char pxHashMapName[];
 
+#define PXHASHMAP_get(pI, pKey) \
+    ((*(pI)->pVt->get)(pI, pKey))
+
+#define PXHASHMAP_put(pI, pKey, pO) \
+    ((*(pI)->pVt->get)(pI, pKey, pO)
 
 #endif // PXHASHMAP_H

@@ -25,7 +25,7 @@ typedef struct pxHasher
     const pxHasherVt *pHasherVt;
 } pxHasher;
 
-const char pxHasherName[];
+extern const char pxHasherName[];
 
 int PXHASHER_getHash(pxHasher *pI);
 void PXHASHER_hashBytes(pxHasher *pI, const void *p, size_t length);

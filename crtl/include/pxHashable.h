@@ -22,6 +22,6 @@ typedef struct pxHashable
     const pxHashableVt *pHashableVt;
 } pxHashable;
 
-const char pxHashableName[];
+extern const char pxHashableName[];
 
 #endif // PXHASHABLE_H

@@ -7,6 +7,14 @@
 #include "pxAlloc.h"
 #endif
 
+#ifndef PXHASHABLE_H
+#include "pxHashable.h"
+#endif
+
+#ifndef PXHASHER_H
+#include "pxHasher.h"
+#endif
+
 #ifndef PXHASHMAP_H
 #include "pxHashMap.h"
 #endif
@@ -22,6 +30,24 @@ typedef struct
     pxObjectStruct objectStruct;
 } pxHashMapLocal_s;
 
+static pxInterface *pxHashMapLocal_get(pxHashMap *pI, pxHashable *pKey)
+{
+    pxHashMapLocal_s *const pThis =
+        PXINTERFACE_STRUCT(pI, pxHashMapLocal_s, pHashMapVt);
+
+    // TODO
+    return NULL;
+}
+
+static pxInterface *pxHashMapLocal_put(
+    pxHashMap *pI, pxHashable *pKey, pxInterface *pO)
+{
+    pxHashMapLocal_s *const pThis =
+        PXINTERFACE_STRUCT(pI, pxHashMapLocal_s, pHashMapVt);
+
+    // TODO
+    return NULL;
+}
 
 static const pxHashMapVt pxHashMapLocalHashMapVt =
 {
