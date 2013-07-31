@@ -76,6 +76,8 @@ static const pxHashMapVt pxHashMapLocalHashMapVt =
         offsetof(pxHashMapLocal_s, pHashMapVt),
         pxObject_getInterface,
     },
+    pxHashMapLocal_get,
+    pxHashMapLocal_put,
 };
 
 static const pxObjectLookup pxHashMapLocal_lookup[] =
