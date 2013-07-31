@@ -23,9 +23,29 @@
 #include "pxObject.h"
 #endif
 
+#ifndef PX_STDLIB_H
+#include <stdlib.h>
+#endif
+
+
+typedef struct pxHashMapLocal_entry
+{
+    struct pxHashMapLocal_entry *pNext;
+    pxHashable *pKey;
+    pxInterface *pO;
+} pxHashMapLocal_entry;
 
 typedef struct
 {
+    pxHashMapLocal_entry *pEntryList;
+} pxHashMapLocal_bucket;
+
+typedef struct
+{
+    pxHashMapLocal_bucket *pBucket;
+    size_t nBuckets;
+    unsigned nEntries;
+
     const pxHashMapVt *pHashMapVt;
     pxObjectStruct objectStruct;
 } pxHashMapLocal_s;
