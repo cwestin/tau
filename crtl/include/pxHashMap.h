@@ -14,7 +14,10 @@ typedef struct
 {
     pxInterfaceVt interfaceVt;
 
+    // NOTE: the key must also support pxComparable
     pxInterface *(*get)(struct pxHashMap *pI, struct pxHashable *pKey);
+
+    // NOTE: the key must also support pxComparable
     pxInterface *(*put)(
         struct pxHashMap *pI, struct pxHashable *pKey, pxInterface *pO);
 } pxHashMapVt;
