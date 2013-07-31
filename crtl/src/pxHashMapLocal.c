@@ -50,11 +50,18 @@ typedef struct
     pxObjectStruct objectStruct;
 } pxHashMapLocal_s;
 
+
+static void pxHashMapLocal_find(pxHashMapLocal_s *const pThis,
+                                pxHashable *pKey)
+{
+}
+
 static pxInterface *pxHashMapLocal_get(pxHashMap *pI, pxHashable *pKey)
 {
     pxHashMapLocal_s *const pThis =
         PXINTERFACE_STRUCT(pI, pxHashMapLocal_s, pHashMapVt);
 
+    pxHashMapLocal_find(pThis, pKey);
     // TODO
     return NULL;
 }
@@ -65,6 +72,7 @@ static pxInterface *pxHashMapLocal_put(
     pxHashMapLocal_s *const pThis =
         PXINTERFACE_STRUCT(pI, pxHashMapLocal_s, pHashMapVt);
 
+    pxHashMapLocal_find(pThis, pKey);
     // TODO
     return NULL;
 }
