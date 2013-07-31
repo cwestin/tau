@@ -12,8 +12,7 @@ typedef struct
 {
     pxInterfaceVt intefaceVt;
 
-    void (*compare)(struct pxComparable *pI,
-                 struct pxInterface *pL, struct pxInterface *pR);
+    int (*compare)(struct pxComparable *pI, struct pxInterface *pO);
 } pxComparableVt;
 
 typedef struct pxComparable
