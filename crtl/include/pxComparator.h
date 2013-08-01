@@ -8,7 +8,7 @@
 
 
 struct pxComparator;
-typedef struct
+typedef struct pxComparator
 {
     pxInterfaceVt intefaceVt;
 

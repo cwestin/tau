@@ -10,7 +10,7 @@
 struct pxHasher;
 
 struct pxHashable;
-typedef struct
+typedef struct pxHashableVt
 {
     pxInterfaceVt intefaceVt;
 

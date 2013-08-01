@@ -8,11 +8,11 @@
 
 
 struct pxComparable;
-typedef struct
+typedef struct pxComparableVt
 {
     pxInterfaceVt intefaceVt;
 
-    int (*compare)(struct pxComparable *pI, struct pxInterface *pO);
+    int (*compare)(struct pxComparable *pI, struct pxInterface *pOther);
 } pxComparableVt;
 
 typedef struct pxComparable
