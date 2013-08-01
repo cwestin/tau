@@ -17,9 +17,12 @@ typedef struct pxComparableVt
 
 typedef struct pxComparable
 {
-    const pxComparableVt *pComparableVt;
+    const pxComparableVt *pVt;
 } pxComparable;
 
 extern const char pxComparableName[];
+
+#define PXCOMPARABLE_compare(pI, pOther) \
+    ((*(pI)->pVt->compare)(pI, pOther))
 
 #endif // PXCOMPARABLE_H

@@ -8,7 +8,7 @@
 
 
 struct pxComparator;
-typedef struct pxComparator
+typedef struct pxComparatorVt
 {
     pxInterfaceVt intefaceVt;
 
@@ -18,7 +18,7 @@ typedef struct pxComparator
 
 typedef struct pxComparator
 {
-    const pxComparatorVt *pComparatorVt;
+    const pxComparatorVt *pVt;
 } pxComparator;
 
 extern const char pxComparatorName[];

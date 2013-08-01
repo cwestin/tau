@@ -22,7 +22,7 @@ typedef struct
 
 typedef struct pxHasher
 {
-    const pxHasherVt *pHasherVt;
+    const pxHasherVt *pVt;
 } pxHasher;
 
 extern const char pxHasherName[];

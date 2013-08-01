@@ -7,6 +7,7 @@
 #endif
 
 
+struct pxAlloc;
 struct pxComparable;
 struct pxHashable;
 
@@ -24,7 +25,9 @@ typedef struct
 
 
 struct pxHashable *pxHashableVarInit(
-    pxHashableVar_s *pThis, const void *p, size_t size,
-    pxInterface *pOwner);
+    pxHashableVar_s *pThis, const void *p, size_t size, pxInterface *pOwner);
+
+struct pxHashable *pxHashableVarCreate(
+    struct pxAlloc *pAlloc, const void *p, size_t size, pxInterface *pOwner);
 
 #endif // PXHASHABLEVAR_H

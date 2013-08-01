@@ -3,6 +3,10 @@
 #include "pxHashableVar.h"
 #endif
 
+#ifndef PXALLOC_H
+#include "pxAlloc.h"
+#endif
+
 #ifndef PXCOMPARABLE_H
 #include "pxComparable.h"
 #endif
@@ -130,4 +134,12 @@ pxHashable *pxHashableVarInit(
     pThis->size = size;
 
     return (pxHashable *)&pThis->pHashableVt;
+}
+
+pxHashable *pxHashableVarCreate(
+    pxAlloc *pAlloc, const void *p, const size_t size, pxInterface *pOwner)
+{
+    pxHashableVar_s *const pThis =
+        PXALLOC_alloc(pAlloc, sizeof(pxHashableVar_s), PXALLOC_F_DIRTY);
+    return pxHashableVarInit(pThis, p, size, pOwner);
 }

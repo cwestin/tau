@@ -12,16 +12,19 @@ struct pxHasher;
 struct pxHashable;
 typedef struct pxHashableVt
 {
-    pxInterfaceVt intefaceVt;
+    pxInterfaceVt interfaceVt;
 
     void (*hash)(struct pxHashable *pI, struct pxHasher *pHasher);
 } pxHashableVt;
 
 typedef struct pxHashable
 {
-    const pxHashableVt *pHashableVt;
+    const pxHashableVt *pVt;
 } pxHashable;
 
 extern const char pxHashableName[];
+
+#define PXHASHABLE_hash(pI, pHasher) \
+    ((*(pI)->pVt->hash)(pI, pHasher))
 
 #endif // PXHASHABLE_H
