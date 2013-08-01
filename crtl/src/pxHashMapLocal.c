@@ -25,6 +25,7 @@
 
 #ifndef PX_STDLIB_H
 #include <stdlib.h>
+#define PX_STDLIB_H
 #endif
 
 
@@ -50,6 +51,14 @@ typedef struct
     pxObjectStruct objectStruct;
 } pxHashMapLocal_s;
 
+
+static bool pxHashMapLocal_isEmpty(pxHashMap *pI)
+{
+    pxHashMapLocal_s *const pThis =
+        PXINTERFACE_STRUCT(pI, pxHashMapLocal_s, pHashMapVt);
+
+    return pThis->nEntries == 0;
+}
 
 static void pxHashMapLocal_find(pxHashMapLocal_s *const pThis,
                                 pxHashable *pKey)
@@ -84,6 +93,7 @@ static const pxHashMapVt pxHashMapLocalHashMapVt =
         offsetof(pxHashMapLocal_s, pHashMapVt),
         pxObject_getInterface,
     },
+    pxHashMapLocal_isEmpty,
     pxHashMapLocal_get,
     pxHashMapLocal_put,
 };
@@ -107,7 +117,8 @@ static const pxObjectVt pxHashMapLocalObjectVt =
     pxObject_destroy,
 };
 
-pxHashMap *pxHashMapLocalCreate(pxAlloc *pAlloc, pxInterface *pOwner)
+pxHashMap *pxHashMapLocalCreate(
+    pxAlloc *pAlloc, pxInterface *pOwner, size_t initCap, size_t avgBucket)
 {
     pxHashMapLocal_s *const pO =
         PXALLOC_alloc(pAlloc, sizeof(pxHashMapLocal_s), PXALLOC_F_DIRTY);
