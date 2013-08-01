@@ -114,5 +114,7 @@ pxHashMap *pxHashMapLocalCreate(pxAlloc *pAlloc, pxInterface *pOwner)
     pO->pHashMapVt = &pxHashMapLocalHashMapVt;
     pxObjectStructInit(&pO->objectStruct, &pxHashMapLocalObjectVt, pOwner);
 
+    // TODO
+
     return (pxHashMap *)&pO->pHashMapVt;
 }
