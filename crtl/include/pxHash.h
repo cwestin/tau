@@ -17,6 +17,8 @@ static inline void pxHashInit(pxHashValue *pHash)
 
 void pxHashVoid(pxHashValue *pHash, const void *p, size_t length);
 
+void pxHashString(pxHashValue *pHash, const char *pc);
+
 static inline void pxHashInt(pxHashValue *pHash, int v)
 {
     pxHashVoid(pHash, &v, sizeof(v));

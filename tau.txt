@@ -1,14 +1,19 @@
-(*) Finish pxHashMapLocal
-- requires cloning objects to clone the key into the right arena
+(*) Finish pxHm
+
+(*) make pxObject and pxInterface use ptrdiff_t for offset values
 
 (*) add clone to pxObject
 - requires hash table to deal with cycles
   - requires hasher object and hashable interface
 
+(*) Finish pxHashMapLocal
+- requires cloning objects to clone the key into the right arena
+
 (*) Add license file
 
 (*) Define file headers
-Add throughout
+- Add throughout
+- doxygen make rules
 
 (*) Implement pxLoom
 Test producer/consumer pattern
