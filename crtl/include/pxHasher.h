@@ -2,13 +2,13 @@
 #ifndef PXHASHER_H
 #define PXHASHER_H
 
-#ifndef PXINTERFACE_H
-#include "pxInterface.h"
-#endif
-
 #ifndef PX_STDLIB_H
 #include <stdlib.h>
 #define PX_STDLIB_H
+#endif
+
+#ifndef PXINTERFACE_H
+#include "pxInterface.h"
 #endif
 
 
