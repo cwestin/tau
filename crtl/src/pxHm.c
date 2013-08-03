@@ -27,7 +27,8 @@ pxHmEntry *pxHmMapFind(pxHmMap *pMap, const void *pKey)
 
     const int iBucket = rawHash & (pMap->nBuckets - 1); // mask power of 2
     pxHmBucket *const pBucket = pMap->pBucket + iBucket;
-    
+
+    // TODO
 }
 
 void pxHmMapInit(pxHmMap *pMap, const pxHmDope *pDope,
