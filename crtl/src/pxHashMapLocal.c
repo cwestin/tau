@@ -7,6 +7,14 @@
 #include "pxAlloc.h"
 #endif
 
+#ifndef PXALLOCLOCAL_H
+#include "pxAllocLocal.h"
+#endif
+
+#ifndef PXCOMPARABLE_H
+#include "pxComparable.h"
+#endif
+
 #ifndef PXHASHABLE_H
 #include "pxHashable.h"
 #endif
@@ -32,7 +40,8 @@
 typedef struct pxHashMapLocal_entry
 {
     struct pxHashMapLocal_entry *pNext;
-    pxHashable *pKey;
+    int rawHash;
+    pxComparable *pKeyCmp;
     pxInterface *pO;
 } pxHashMapLocal_entry;
 
@@ -47,6 +56,7 @@ typedef struct
     size_t nBuckets;
     size_t nEntries;
     size_t avgBucket;
+    pxAlloc *pAlloc;
 
     const pxHashMapVt *pHashMapVt;
     pxObjectStruct objectStruct;
@@ -61,10 +71,66 @@ static bool pxHashMapLocal_isEmpty(pxHashMap *pI)
     return pThis->nEntries == 0;
 }
 
-static void pxHashMapLocal_find(
-    pxHashMapLocal_s *const pThis, pxHashable *const pKey)
+static int pxHashMapLocal_hash(pxHashable *const pKey)
 {
-    
+    pxAlloc *pAllocLocal;
+    pxHasher *pHasher;
+    PXALLOCLOCAL_SPACE(96) stackSpace;
+
+    pAllocLocal = PXALLOCLOCAL_INIT(&stackSpace);
+    pHasher = pxHasherCreate(pAllocLocal, NULL);
+
+    PXHASHABLE_hash(pKey, pHasher);
+    int rawHash = PXHASHER_getHash(pHasher);
+
+    // clean up
+    pxObject *const pAllocObject =
+        PXINTERFACE_getInterface(pAllocLocal, pxObject);
+    PXOBJECT_destroy(pAllocObject);
+
+    return rawHash;
+}
+
+static pxHashMapLocal_entry **pxHashMapLocal_find(
+    pxHashMapLocal_s *const pThis, pxHashable *const pKey, bool create)
+{
+    const int rawHash = pxHashMapLocal_hash(pKey);
+    const int iBucket = rawHash & (pThis->nBuckets - 1); // mask power of 2
+    pxHashMapLocal_bucket *const pBucket = pThis->pBucket + iBucket;
+
+    pxHashMapLocal_entry **ppEntry;
+    for(ppEntry = &pBucket->pEntryList; *ppEntry; ppEntry = &(*ppEntry)->pNext)
+    {
+        const int thisHash = (*ppEntry)->rawHash;
+        if ((rawHash == thisHash))
+        {
+            const int keyCmp =
+                PXCOMPARABLE_compare((*ppEntry)->pKeyCmp, (pxInterface *)pKey);
+            if (keyCmp == 0)
+                return ppEntry;
+            else if (keyCmp > 0)
+                break; // we've passed where it would go, so stop looking
+        }
+        else if (rawHash > thisHash)
+            break; // we've passed where it would go, so stop looking
+    }
+
+    // we didn't find it, but this is where it would go
+    if (!create)
+        return NULL;
+
+    pxHashMapLocal_entry *const pEntry =
+        PXALLOC_alloc(pThis->pAlloc, sizeof(pxHashMapLocal_entry),
+                      PXALLOC_F_DIRTY);
+    pEntry->rawHash = rawHash;
+    // TODO clone key
+    pEntry->pKeyCmp = PXINTERFACE_getInterface(pKey, pxComparable);
+    pEntry->pO = NULL;
+
+    pEntry->pNext = *ppEntry;
+    *ppEntry = pEntry;
+    ++pThis->nEntries;
+    return ppEntry;
 }
 
 static pxInterface *pxHashMapLocal_get(pxHashMap *pI, pxHashable *pKey)
@@ -72,8 +138,11 @@ static pxInterface *pxHashMapLocal_get(pxHashMap *pI, pxHashable *pKey)
     pxHashMapLocal_s *const pThis =
         PXINTERFACE_STRUCT(pI, pxHashMapLocal_s, pHashMapVt);
 
-    pxHashMapLocal_find(pThis, pKey);
-    // TODO
+    pxHashMapLocal_entry **ppEntry =
+        pxHashMapLocal_find(pThis, pKey, false);
+    if (ppEntry)
+        return (*ppEntry)->pO;
+
     return NULL;
 }
 
@@ -83,9 +152,11 @@ static pxInterface *pxHashMapLocal_put(
     pxHashMapLocal_s *const pThis =
         PXINTERFACE_STRUCT(pI, pxHashMapLocal_s, pHashMapVt);
 
-    pxHashMapLocal_find(pThis, pKey);
-    // TODO
-    return NULL;
+    pxHashMapLocal_entry **ppEntry =
+        pxHashMapLocal_find(pThis, pKey, true);
+    pxInterface *const pOld = (*ppEntry)->pO;
+    (*ppEntry)->pO = pO;
+    return pOld;
 }
 
 static const pxHashMapVt pxHashMapLocalHashMapVt =
@@ -147,6 +218,7 @@ pxHashMap *pxHashMapLocalCreate(
     pThis->nBuckets = initBucket;
     pThis->nEntries = 0;
     pThis->avgBucket = avgBucket;
+    pThis->pAlloc = pAlloc;
 
     return (pxHashMap *)&pThis->pHashMapVt;
 }

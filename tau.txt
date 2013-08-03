@@ -1,3 +1,6 @@
+(*) Finish pxHashMapLocal
+- requires cloning objects to clone the key into the right arena
+
 (*) add clone to pxObject
 - requires hash table to deal with cycles
   - requires hasher object and hashable interface
