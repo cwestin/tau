@@ -17,6 +17,7 @@ struct pxAlloc;
 
 typedef struct pxHmEntry
 {
+// private:    
     struct pxHmEntry *pNext;
     pxHashValue rawHash;
 } pxHmEntry;
@@ -28,13 +29,13 @@ typedef struct
 {
     size_t avgBucket;
     ptrdiff_t keyOffset;
-    ptrdiff_t valueOffset;
     pxHashValue (*hash)(const void *p);
     int (*cmp)(const void *pL, const void *pR);
 } pxHmDope;
 
 typedef struct
 {
+// private:    
     struct pxHmBucket *pBucket;
     size_t nBuckets;
     size_t nEntries;
@@ -46,5 +47,9 @@ typedef struct
 
 void pxHmMapInit(pxHmMap *pMap, const pxHmDope *pDope,
                  struct pxAlloc *pAlloc, size_t initCap);
+
+pxHmEntry *pxHmMapFind(pxHmMap *pMap, const void *pKey,
+               pxHmEntry *(*create)(void *pCtx, struct pxAlloc *pAlloc),
+               void *pCtx);
 
 #endif // PXHM_H

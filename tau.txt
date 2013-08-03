@@ -1,6 +1,10 @@
 (*) Finish pxHm
+- pxAllocReuse
+- testpxHm
 
 (*) make pxObject and pxInterface use ptrdiff_t for offset values
+
+(*) Use pxExit everywhere
 
 (*) add clone to pxObject
 - requires hash table to deal with cycles
