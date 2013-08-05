@@ -2,6 +2,7 @@
 - testpxHm
 
 (*) make pxObject and pxInterface use ptrdiff_t for offset values
+- anywhere else?
 
 (*) Add license file
 
@@ -25,15 +26,18 @@
 - Test producer/consumer pattern
 
 (*) Implement pxChannel
+- need abstract interface
+- need concrete class for intra-loom communication
+- need concrete class for iter-loom communication
+  - will use pthreads primitives for synchronization?
 
 (*) make pxLoom work across threads
 - pthreads, or apr?
 
 (*) Implement pxFile, pxInputStream, pxOutputStream
-Use aio.h for reading and writing files, integrate with pxLoom
-
-(*) Submit to iarc?
-Update readme.md
+- Use aio.h for reading and writing files, integrate with pxLoom
+  - is this just inter-loom communication? Or is there a thread dedicated to
+    i/o?
 
 (*) Build simple starter lexer
 
