@@ -19,6 +19,8 @@
 - Add throughout
 - doxygen make rules
 
+(*) makemake to handle transitive dependencies
+
 (*) Implement pxLoom
 Test producer/consumer pattern
 

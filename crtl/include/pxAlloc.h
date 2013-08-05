@@ -2,13 +2,13 @@
 #ifndef PXALLOC_H
 #define PXALLOC_H
 
-#ifndef PXINTERFACE_H
-#include "pxInterface.h"
-#endif
-
 #ifndef PX_STDDEF_H
 #include <stddef.h>
 #define PX_STDDEF_H
+#endif
+
+#ifndef PXINTERFACE_H
+#include "pxInterface.h"
 #endif
 
 
