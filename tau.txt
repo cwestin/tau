@@ -1,8 +1,13 @@
 (*) Finish pxHm
-- pxAllocReuse
 - testpxHm
 
 (*) make pxObject and pxInterface use ptrdiff_t for offset values
+
+(*) Add license file
+
+(*) Define file headers
+- Add throughout
+- doxygen make rules
 
 (*) Use pxExit everywhere
 
@@ -13,22 +18,22 @@
 (*) Finish pxHashMapLocal
 - requires cloning objects to clone the key into the right arena
 
-(*) Add license file
-
-(*) Define file headers
-- Add throughout
-- doxygen make rules
-
 (*) makemake to handle transitive dependencies
 
 (*) Implement pxLoom
-Test producer/consumer pattern
+- semaphores for producer/consumers so channels work
+- Test producer/consumer pattern
 
-(*) Submit to iarc
-Update readme.md
+(*) Implement pxChannel
+
+(*) make pxLoom work across threads
+- pthreads, or apr?
 
 (*) Implement pxFile, pxInputStream, pxOutputStream
 Use aio.h for reading and writing files, integrate with pxLoom
+
+(*) Submit to iarc?
+Update readme.md
 
 (*) Build simple starter lexer
 

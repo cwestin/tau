@@ -7,6 +7,10 @@
 #include "pxAlloc.h"
 #endif
 
+#ifndef PXALLOCREUSE_H
+#include "pxAllocReuse.h"
+#endif
+
 #ifndef PXEXIT_H
 #include "pxExit.h"
 #endif
@@ -150,6 +154,6 @@ void pxHmMapInit(pxHmMap *pMap, const pxHmDope *pDope,
     pMap->nEntries = 0;
     pMap->pDope = pDope;
 
-    // TODO wrap the allocator in pxAllocReuse
-    pMap->pAlloc = pAlloc;
+    // wrap the allocator with pxAllocReuse in order to reuse the bucket array
+    pMap->pAlloc = pxAllocReuseCreate(pAlloc);
 }
