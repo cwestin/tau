@@ -115,7 +115,7 @@ pxHmEntry *pxHmMapFind(pxHmMap *pMap, const void *pKey,
         const void *const pThisKey = ((char *)pEntry) + pMap->pDope->keyOffset;
         const int cmp = (*pMap->pDope->cmp)(pKey, pThisKey);
         if (cmp)
-            pxExit("pxHmMapFind: key in newly created entry is wrong");
+            pxExit("pxHmMapFind: key in newly created entry is wrong\n");
 
         // set our parts
         pEntry->rawHash = rawHash;
