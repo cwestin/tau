@@ -29,7 +29,7 @@ typedef struct
 {
     size_t avgBucket;
     ptrdiff_t keyOffset;
-    pxHashValue (*hash)(const void *p);
+    void (*hash)(pxHashValue *pHash, const void *p);
     int (*cmp)(const void *pL, const void *pR);
 } pxHmDope;
 

@@ -1,18 +1,19 @@
 
-#ifndef PXHASHMAPLOCAL_H
-#include "pxHashMapLocal.h"
+#ifndef PX_STDIO_H
+#include <stdio.h>
+#define PX_STDIO_H
 #endif
 
 #ifndef PXALLOC_H
 #include "pxAlloc.h"
 #endif
 
-#ifndef PXALLOCSYSTEM_H
-#include "pxAllocSystem.h"
-#endif
-
 #ifndef PXALLOCEXTENT_H
 #include "pxAllocExtent.h"
+#endif
+
+#ifndef PXALLOCSYSTEM_H
+#include "pxAllocSystem.h"
 #endif
 
 #ifndef PXHASHABLEVAR_H
@@ -21,6 +22,10 @@
 
 #ifndef PXHASHMAP_H
 #include "pxHashMap.h"
+#endif
+
+#ifndef PXHASHMAPLOCAL_H
+#include "pxHashMapLocal.h"
 #endif
 
 #ifndef PXINTERFACE_H
@@ -33,10 +38,6 @@
 
 #ifndef PXOBJECT_H
 #include "pxObject.h"
-#endif
-
-#ifndef PX_STDIO_H
-#include <stdio.h>
 #endif
 
 

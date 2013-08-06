@@ -13,6 +13,11 @@
 #define PX_STDIO_H
 #endif
 
+#ifndef PX_STDLIB_H
+#include <stdlib.h>
+#define PX_STDLIB_H
+#endif
+
 
 void pxExit(const char *ps, ...)
 {

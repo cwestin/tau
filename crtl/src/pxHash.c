@@ -1,11 +1,11 @@
 
-#ifndef PXHASH_H
-#include "pxHash.h"
-#endif
-
 #ifndef PX_LIMITS_H
 #include <limits.h>
 #define PX_LIMITS_H
+#endif
+
+#ifndef PXHASH_H
+#include "pxHash.h"
 #endif
 
 
@@ -28,17 +28,22 @@ void pxHashVoid(pxHashValue *pHash, const void *p, size_t length)
     }
 }
 
-void pxHashString(pxHashValue *pHash, const char *pc)
+void pxHashString(pxHashValue *pHash, const void *p)
 {
-    for(; *pc != '\0'; ++pc)
+    for(const unsigned char *pc = (const unsigned char *)p; *pc != '\0'; ++pc)
     {
-        *pHash ^= pxHash_random[*(const unsigned char *)pc];
+        *pHash ^= pxHash_random[*pc];
 
         // rotate left 5 bits
         *pHash =
             (*pHash << PXHASH_ROT_LEFT) |
             (((unsigned)*pHash) >> PXHASH_ROT_RIGHT);
     }
+}
+
+void pxHashInt(pxHashValue *pHash, const void *p)
+{
+    pxHashVoid(pHash, p, sizeof(int));
 }
 
 

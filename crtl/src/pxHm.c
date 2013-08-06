@@ -79,7 +79,7 @@ pxHmEntry *pxHmMapFind(pxHmMap *pMap, const void *pKey,
 
     // hash the key
     pxHashInit(&rawHash);
-    (*pMap->pDope->hash)(pKey);
+    (*pMap->pDope->hash)(&rawHash, pKey);
 
     const int iBucket = rawHash & (pMap->nBuckets - 1); // mask power of 2
     pxHmBucket *const pBucket = pMap->pBucket + iBucket;
