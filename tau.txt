@@ -1,14 +1,10 @@
 (*) Add license file
 
-(*) Use pxExit everywhere
-
 (*) Define file headers
 - Add throughout
 - doxygen make rules
 
 (*) add clone to pxObject
-- requires hash table to deal with cycles
-  - requires hasher object and hashable interface
 
 (*) Finish pxHashMapLocal
 - requires cloning objects to clone the key into the right arena
@@ -16,8 +12,9 @@
 (*) makemake to handle transitive dependencies
 
 (*) Implement pxLoom
-- semaphores for producer/consumers so channels work
+- semaphores for producer/consumers, so channels work
 - Test producer/consumer pattern
+- select from one of multiple channels
 
 (*) Implement pxChannel
 - need abstract interface

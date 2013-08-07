@@ -1,11 +1,11 @@
 
+#ifndef PXHASH_H
+#include "pxHash.h"
+#endif
+
 #ifndef PX_LIMITS_H
 #include <limits.h>
 #define PX_LIMITS_H
-#endif
-
-#ifndef PXHASH_H
-#include "pxHash.h"
 #endif
 
 

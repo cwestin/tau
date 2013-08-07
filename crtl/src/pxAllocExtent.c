@@ -11,6 +11,10 @@
 #include "pxAlloc.h"
 #endif
 
+#ifndef PXEXIT_H
+#include "pxExit.h"
+#endif
+
 #ifndef PXFREE_H
 #include "pxFree.h"
 #endif
@@ -51,7 +55,7 @@ typedef struct
 static void *pxAllocExtent_alloc(pxAlloc *pI, size_t size, int flag)
 {
     if (size <= 0)
-        exit(-1);
+        pxExit("pxAllocExtent_alloc: request to allocate size <= zero");
 
     pxAllocExtent_s *const pThis =
         PXINTERFACE_STRUCT(pI, pxAllocExtent_s, pAllocVt);

@@ -3,22 +3,6 @@
 #include "pxHashableVar.h"
 #endif
 
-#ifndef PXALLOC_H
-#include "pxAlloc.h"
-#endif
-
-#ifndef PXCOMPARABLE_H
-#include "pxComparable.h"
-#endif
-
-#ifndef PXHASHABLE_H
-#include "pxHashable.h"
-#endif
-
-#ifndef PXHASHER_H
-#include "pxHasher.h"
-#endif
-
 #ifndef PX_STDIO_H
 #include <stdio.h>
 #define PX_STDIO_H
@@ -27,6 +11,26 @@
 #ifndef PX_STRING_H
 #include <string.h>
 #define PX_STRING_H
+#endif
+
+#ifndef PXALLOC_H
+#include "pxAlloc.h"
+#endif
+
+#ifndef PXCOMPARABLE_H
+#include "pxComparable.h"
+#endif
+
+#ifndef PXEXIT_H
+#include "pxExit.h"
+#endif
+
+#ifndef PXHASHABLE_H
+#include "pxHashable.h"
+#endif
+
+#ifndef PXHASHER_H
+#include "pxHasher.h"
 #endif
 
 
@@ -56,20 +60,14 @@ static int pxHashableVar_compare(pxComparable *pI, pxInterface *pOther)
     pxObject *const pObject =
         PXINTERFACE_getInterface((pxObject *)pOther, pxObject);
     if (pObject->pVt != pThis->objectStruct.pObjectVt)
-    {
-        fprintf(stderr, "pxHashableVar_compare: objects of different class\n");
-        exit(1);
-    }
+        pxExit("pxHashableVar_compare: objects of different class\n");
 
     // same class: they must have the same length or be variable
     const pxHashableVar_s *const pOtherThis =
         PXINTERFACE_STRUCT(pObject, pxHashableVar_s, objectStruct.pObjectVt);
     // TODO allow variable size
     if ((pThis->size != pOtherThis->size))
-    {
-        fprintf(stderr, "pxHashableVar_compare: objects of different class\n");
-        exit(1);
-    }
+        pxExit("pxHashableVar_compare: objects of different class\n");
     
     size_t size;
     int sizecmp;

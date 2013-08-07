@@ -4,7 +4,7 @@
 #endif
 
 #ifndef PX_STDLIB_H
-#include <stdlib.h> // only for exit()
+#include <stdlib.h>
 #define PX_STDLIB_H
 #endif
 

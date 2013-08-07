@@ -20,6 +20,10 @@
 #include "pxDll.h"
 #endif
 
+#ifndef PXEXIT_H
+#include "pxExit.h"
+#endif
+
 #ifndef PXFREE_H
 #include "pxFree.h"
 #endif
@@ -77,10 +81,7 @@ static void *pxAllocDebug_alloc(pxAlloc *pAlloc, size_t size, int flag)
 static void pxAllocDebug_free(pxFree *pFree, void *p)
 {
     if (p == NULL)
-    {
-        fprintf(stderr, "pxAllocDebug_free: Attempt to free NULL\n");
-        exit(-1);
-    }
+        pxExit("pxAllocDebug_free: Attempt to free NULL\n");
 
     pxAllocDebug_s *const pThis =
         PXINTERFACE_STRUCT(pFree, pxAllocDebug_s, pFreeVt);
@@ -88,10 +89,7 @@ static void pxAllocDebug_free(pxFree *pFree, void *p)
         (((char *)p) - offsetof(pxAllocDebug_item, data));
 
     if (pItem->pOwner != pThis)
-    {
-        fprintf(stderr, "pxAllocDebug_free: Attempt to free non-member\n");
-        exit(-1);
-    }
+        pxExit("pxAllocDebug_free: Attempt to free non-member\n");
 
     // remove it from the list
     pxDllRemove(&pItem->link);

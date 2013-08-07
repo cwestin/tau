@@ -3,18 +3,6 @@
 #include "pxAllocSystem.h"
 #endif
 
-#ifndef PXALLOC_H
-#include "pxAlloc.h"
-#endif
-
-#ifndef PXFREE_H
-#include "pxFree.h"
-#endif
-
-#ifndef PXOBJECT_H
-#include "pxObject.h"
-#endif
-
 #ifndef PX_STDIO_H
 #include <stdio.h>
 #define PX_STDIO_H
@@ -28,6 +16,22 @@
 #ifndef PX_STRINGS_H
 #include <strings.h>
 #define PX_STRINGS_H
+#endif
+
+#ifndef PXALLOC_H
+#include "pxAlloc.h"
+#endif
+
+#ifndef PXEXIT_H
+#include "pxExit.h"
+#endif
+
+#ifndef PXFREE_H
+#include "pxFree.h"
+#endif
+
+#ifndef PXOBJECT_H
+#include "pxObject.h"
 #endif
 
 
@@ -46,8 +50,7 @@ static void *pxAllocSystem_alloc(pxAlloc *pAlloc, size_t size, int flag)
         if (flag & PXALLOC_F_RETURN_OOM)
             return NULL;
 
-        fprintf(stderr, "pxAllocSystem_alloc: OOM\n");
-        exit(-1);
+        pxExit("pxAllocSystem_alloc: OOM\n");
     }
 
     if (!(flag & PXALLOC_F_DIRTY))

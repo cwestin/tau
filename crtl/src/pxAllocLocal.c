@@ -22,6 +22,10 @@
 #include "pxAlloc.h"
 #endif
 
+#ifndef PXEXIT_H
+#include "pxExit.h"
+#endif
+
 #ifndef PXOBJECT_H
 #include "pxObject.h"
 #endif
@@ -41,10 +45,7 @@ typedef struct
 static void *pxAllocLocal_alloc(pxAlloc *pI, size_t size, int flag)
 {
     if (size <= 0)
-    {
-        fprintf(stderr, "pxAllocLocal_alloc: requested size is <= 0\n");
-        exit(-1);
-    }
+        pxExit("pxAllocLocal_alloc: requested size is <= 0\n");
 
     pxAllocLocal_s *const pThis =
         PXINTERFACE_STRUCT(pI, pxAllocLocal_s, pAllocVt);
@@ -53,9 +54,8 @@ static void *pxAllocLocal_alloc(pxAlloc *pI, size_t size, int flag)
         if (flag & PXALLOC_F_RETURN_OOM)
             return NULL;
 
-        fprintf(stderr, "pxAllocLocal_alloc: insufficient space available; ");
-        fprintf(stderr, "avail = %lu, size = %lu\n", pThis->avail, size);
-        exit(-1);
+        pxExit("pxAllocLocal_alloc: insufficient space available; "
+               "avail = %lu, size = %lu\n", pThis->avail, size);
     }
 
     const size_t alignedSize = PXALIGN_SIZE(size);
@@ -102,10 +102,7 @@ static const pxObjectVt pxAllocLocalObjectVt =
 pxAlloc *pxAllocLocalInit(pxAlignAll *pSpace, size_t size)
 {
     if (size < sizeof(pxAllocLocal_s))
-    {
-        fprintf(stderr, "can't initialize local allocator\n");
-        exit(1);
-    }
+        pxExit("can't initialize local allocator\n");
 
     pxAllocLocal_s *const pThis = (pxAllocLocal_s *)pSpace;
     pThis->pAllocVt = &pxAllocLocalAllocVt;
