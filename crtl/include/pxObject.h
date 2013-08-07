@@ -2,6 +2,11 @@
 #ifndef PXOBJECT_H
 #define PXOBJECT_H
 
+#ifndef PX_STDDEF_H
+#include <stddef.h>
+#define PX_STDDEF_H
+#endif
+
 #ifndef PXINTERFACE_H
 #include "pxInterface.h"
 #endif
@@ -10,7 +15,7 @@
 typedef struct
 {
     const char *const pName;
-    int interfaceOffset; // offset from Object interface to other interface
+    ptrdiff_t interfaceOffset; // offset from pxObject interface to other interface
 } pxObjectLookup;
 
 struct pxObject;

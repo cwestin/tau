@@ -1,13 +1,10 @@
-(*) make pxObject and pxInterface use ptrdiff_t for offset values
-- anywhere else?
-
 (*) Add license file
+
+(*) Use pxExit everywhere
 
 (*) Define file headers
 - Add throughout
 - doxygen make rules
-
-(*) Use pxExit everywhere
 
 (*) add clone to pxObject
 - requires hash table to deal with cycles
