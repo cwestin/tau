@@ -1,3 +1,5 @@
+(*) fix average bucket size handling in pxHm
+
 (*) Add license file
 
 (*) Define file headers
@@ -7,6 +9,7 @@
 (*) add clone to pxObject
 
 (*) Finish pxHashMapLocal
+- fix average bucket size handling similar to pxHm
 - requires cloning objects to clone the key into the right arena
 
 (*) makemake to handle transitive dependencies
