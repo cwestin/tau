@@ -11,7 +11,7 @@
 struct pxInterface;
 typedef struct pxInterfaceVt
 {
-    int pxObjectOffset; // offset of pxObject interface from this interface
+    ptrdiff_t pxObjectOffset; // offset of pxObject interface from this interface
     struct pxInterface *(*getInterface)(
         struct pxInterface *pThis, const char *const pName);
 } pxInterfaceVt;

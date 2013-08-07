@@ -1,6 +1,3 @@
-(*) Finish pxHm
-- testpxHm
-
 (*) make pxObject and pxInterface use ptrdiff_t for offset values
 - anywhere else?
 
