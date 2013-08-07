@@ -48,6 +48,11 @@ typedef struct
 void pxHmMapInit(pxHmMap *pMap, const pxHmDope *pDope,
                  struct pxAlloc *pAlloc, size_t initCap);
 
+static inline unsigned pxHmMapCount(const pxHmMap *pMap)
+{
+    return pMap->nEntries;
+}
+
 pxHmEntry *pxHmMapFind(pxHmMap *pMap, const void *pKey,
                pxHmEntry *(*create)(void *pCtx, struct pxAlloc *pAlloc),
                void *pCtx);

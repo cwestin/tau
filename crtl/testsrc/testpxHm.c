@@ -79,7 +79,7 @@ static void testpxHm()
     pxHmMap *const pMap = &hmMap;
     pxHmMapInit(pMap, &MyStructDope, pAllocE, 1);
 
-    const int nTrials = 11;
+    const int nTrials = 57;
     MyStruct *pStruct[nTrials];
     for(int i = 0; i < nTrials; ++i)
     {
@@ -89,6 +89,9 @@ static void testpxHm()
         if (pEntry)
             fprintf(stderr, "found entry when it shouldn't exist (%d, %d)\n",
                     i, __LINE__);
+
+        if (pxHmMapCount(pMap) != i)
+            fprintf(stderr, "incorrect count (%d, %d)\n", i, __LINE__);
 
         MyStruct_createCtx ctx;
         MyStruct_createInit(&ctx, i);
@@ -101,6 +104,9 @@ static void testpxHm()
 
         pStruct[i] = PXHM_STRUCT(pEntry, MyStruct, hmEntry);
 
+        if (pxHmMapCount(pMap) != i + 1)
+            fprintf(stderr, "incorrect count after creation (%d, %d)\n", i, __LINE__);
+
         MyStruct_createInit(&ctx, i);
         pEntry = pxHmMapFind(pMap, &i, MyStruct_create, &ctx);
         if (!pEntry)
@@ -111,6 +117,9 @@ static void testpxHm()
 
         if (pEntry != &pStruct[i]->hmEntry)
             fprintf(stderr, "found entry doesn't match original (%d, %d)\n", i, __LINE__);
+
+        if (pxHmMapCount(pMap) != i + 1)
+            fprintf(stderr, "incorrect count after creation (%d, %d)\n", i, __LINE__);
     }
 
     for(int i = 0; i < nTrials; ++i)

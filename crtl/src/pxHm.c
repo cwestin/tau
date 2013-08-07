@@ -32,8 +32,17 @@ static void pxHmMapResize(pxHmMap *pMap)
         PXALLOC_alloc(pMap->pAlloc,
                       (sizeof(pxHmBucket) * pMap->nBuckets) << 1, 0);
 
+    // copy the list heads for the old buckets
     pxHmBucket *pOld = pOldBucket;
-    pxHmBucket *pNew = pNewBucket + pMap->nBuckets;
+    pxHmBucket *pNew = pNewBucket;
+    for(int n = pMap->nBuckets; n; ++pOld, ++pNew, --n)
+    {
+        pNew->pEntryList = pOld->pEntryList;
+    }
+
+    // move items from existing buckets to new if their hash dictates it
+    pOld = pNewBucket;
+    pNew = pNewBucket + pMap->nBuckets;
     for(int n = pMap->nBuckets; n; ++pOld, ++pNew, --n)
     {
         pxHmEntry **ppOldEntry = &pOld->pEntryList;
@@ -45,10 +54,14 @@ static void pxHmMapResize(pxHmMap *pMap)
         {
             // check if the newly used hash bit is on
             if (!(pMoveEntry->rawHash & pMap->nBuckets))
+            {
+                // this entry is already where it belongs, skip over it
                 ppOldEntry = &pMoveEntry->pNext;
+            }
             else
             {
                 // remove it from the original bucket
+                // (but keep emptying the old entry list)
                 *ppOldEntry = pMoveEntry->pNext;
 
                 // add it to end of the new bucket
