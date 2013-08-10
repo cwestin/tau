@@ -14,6 +14,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  */
+/** @file */
 
 #ifndef PXINTERFACE_H
 #define PXINTERFACE_H
@@ -24,10 +25,26 @@
 #endif
 
 
+/** @class pxInterface
+    All interfaces derive from pxInterface. pxInterface provides the means to
+    get access to all the other interfaces implemented by an object.
+ */
 struct pxInterface;
 typedef struct pxInterfaceVt
 {
     ptrdiff_t pxObjectOffset; // offset of pxObject interface from this interface
+
+    /** @fn getInterface @memberof pxInterface
+       Get another interface pointer from this object.
+
+       @param pThis pointer to an interface
+       @param pName the name of the desired interface. Note that the current
+         implementation assumes the standard name symbol is used, and only
+         compares the name symbol addresses when names are referred to locally
+         (in-process).
+       @returns pointer to the requested interface, if the object implements it,
+         otherwise NULL
+    */
     struct pxInterface *(*getInterface)(
         struct pxInterface *pThis, const char *const pName);
 } pxInterfaceVt;
@@ -41,6 +58,15 @@ typedef struct pxInterface
     ((iName *)((*(pI)->pVt->interfaceVt.getInterface)((pxInterface *)(pI), iName ## Name)))
 
 
+/**
+   Recover the pointer to a concrete implementation structure.
+
+   @param pI pointer to an interface
+   @param sname the name of the concrete implementation's structure
+   @param vtname the name of the structure member that points to the
+     interface's vtable
+   @returns a (typed) pointer to the concrete implementation's structure
+ */
 #define PXINTERFACE_STRUCT(pI, sname, vtname) \
     ((sname *)(((char *)(pI)) - offsetof(sname, vtname)))
 
