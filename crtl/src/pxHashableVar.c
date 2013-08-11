@@ -133,9 +133,14 @@ static const pxObjectVt pxHashableVarObjectVt =
     },
     pxObject_destroy,
     pxObject_cloneForbidden,
+
     sizeof(pxHashableVar_interfaces)/sizeof(pxHashableVar_interfaces[0]),
     pxHashableVar_interfaces,
-    0, NULL,
+
+    sizeof(pxHashableVar_s),
+    offsetof(pxHashableVar_s, objectStruct.pObjectVt),
+    0,
+    NULL,
 };
 
 pxHashable *pxHashableVarInit(

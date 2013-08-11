@@ -81,7 +81,10 @@ static const pxObjectVt MyDestroyable_ObjectVt =
     pxObject_cloneForbidden, // TODO
     sizeof(MyDestroyable_interfaces)/sizeof(MyDestroyable_interfaces[0]),
     MyDestroyable_interfaces,
-    0, NULL,
+    sizeof(MyDestroyable),
+    offsetof(MyDestroyable, objectStruct.pObjectVt),
+    0,
+    NULL,
 };
 
 static void MyDestroyableInit(MyDestroyable *pMD, bool *pBool)

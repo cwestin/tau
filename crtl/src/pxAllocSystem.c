@@ -119,9 +119,14 @@ static const pxObjectVt pxAllocSystemObjectVt =
     },
     pxObject_destroy,
     pxObject_cloneForbidden,
+
     sizeof(pxAllocSystem_interfaces)/sizeof(pxAllocSystem_interfaces[0]),
     pxAllocSystem_interfaces,
-    0, NULL,
+
+    sizeof(pxAllocSystem_s),
+    offsetof(pxAllocSystem_s, objectStruct.pObjectVt),
+    0,
+    NULL,
 };
 
 static pxAllocSystem_s *pxAllocSystemCreate()

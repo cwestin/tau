@@ -51,8 +51,8 @@ const char pxAllocReuseName[] = "pxAllocReuse";
 
 typedef struct
 {
-    pxAlloc *pAlloc;
-    pxDllHead list;
+    pxAlloc *pAlloc; // underlying allocator
+    pxDllHead list; // list of pieces to try reusing
 
     const pxAllocVt *pAllocVt;
     const pxAllocReuseVt *pAllocReuseVt;
@@ -162,9 +162,14 @@ static const pxObjectVt pxAllocReuseObjectVt =
     },
     pxObject_destroy,
     pxObject_cloneForbidden,
+
     sizeof(pxAllocReuse_interfaces)/sizeof(pxAllocReuse_interfaces[0]),
     pxAllocReuse_interfaces,
-    0, NULL,
+
+    sizeof(pxAllocReuse_s),
+    offsetof(pxAllocReuse_s, objectStruct.pObjectVt),
+    0,
+    NULL,
 };
 
 pxAlloc *pxAllocReuseCreate(pxAlloc *pAlloc)

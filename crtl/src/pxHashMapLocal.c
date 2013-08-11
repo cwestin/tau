@@ -203,9 +203,14 @@ static const pxObjectVt pxHashMapLocalObjectVt =
     },
     pxObject_destroy,
     pxObject_cloneForbidden, // TODO
+
     sizeof(pxHashMapLocal_interfaces)/sizeof(pxHashMapLocal_interfaces[0]),
     pxHashMapLocal_interfaces,
-    0, NULL,
+
+    sizeof(pxHashMapLocal_s),
+    offsetof(pxHashMapLocal_s, objectStruct.pObjectVt),
+    0,
+    NULL,
 };
 
 pxHashMap *pxHashMapLocalCreate(

@@ -58,11 +58,11 @@ static void pxAllocExtent_extentInit(pxAllocExtent_extent *pE, size_t size)
 
 typedef struct
 {
+    pxAlloc *pAlloc; // underlying allocator
+    pxAllocExtent_extent *pExtents; // list of extents
+
     const pxAllocVt *pAllocVt;
     pxObjectStruct objectStruct;
-
-    pxAlloc *pAlloc;
-    pxAllocExtent_extent *pExtents;
 
     pxAllocExtent_extent firstExtent;
 } pxAllocExtent_s;
@@ -166,9 +166,14 @@ static const pxObjectVt pxAllocExtent_ObjectVt =
     },
     pxAllocExtent_destroy,
     pxObject_cloneForbidden,
+
     sizeof(pxAllocExtent_interfaces)/sizeof(pxAllocExtent_interfaces[0]),
     pxAllocExtent_interfaces,
-    0, NULL,
+
+    sizeof(pxAllocExtent_s),
+    offsetof(pxAllocExtent_s, objectStruct.pObjectVt),
+    0,
+    NULL,
 };
 
 pxAlloc *pxAllocExtentCreate(

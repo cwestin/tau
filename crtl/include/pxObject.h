@@ -123,8 +123,13 @@ typedef struct pxObjectVt
 #define PXOBJECT_clone(pI, pAlloc, pIName, pMap) \
     ((*(pI)->pVt->clone)(pI, pAlloc, pIName, pMap))
 
+    // used by pxObject_getInterface()
     size_t nInterface; // size of the interface table as a number of entries
     const pxObjectInterface *pInterface; // the interface table
+
+    // used by pxObject_clone()
+    size_t size; // size of this object
+    ptrdiff_t objectOffset; // offset to the pxObjectVt
     size_t nMember; // size of the member table as a number of entries
     const pxObjectMember *pMember;
 

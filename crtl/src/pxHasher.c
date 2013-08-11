@@ -37,6 +37,7 @@ const char pxHasherName[] = "pxHasher";
 typedef struct
 {
     pxHashValue hashValue;
+
     pxObjectStruct objectStruct;
 } pxHasher_s;
 
@@ -55,9 +56,14 @@ static const pxObjectVt pxHasherObjectVt =
     },
     pxObject_destroy,
     pxObject_clone,
+
     sizeof(pxHasher_interfaces)/sizeof(pxHasher_interfaces[0]),
     pxHasher_interfaces,
-    0, NULL,
+
+    sizeof(pxHasher_s),
+    offsetof(pxHasher_s, objectStruct.pObjectVt),
+    0,
+    NULL,
 };
 
 pxHasher *pxHasherCreate(pxAlloc *pAlloc, pxInterface *pOwner)

@@ -46,9 +46,10 @@ typedef struct
 
 typedef struct
 {
-    pxObjectStruct objectStruct;
     pxObject *pManaged;
     pxDllLink link;
+
+    pxObjectStruct objectStruct;
 } pxMinder_item;
 
 static void pxMinder_item_destroy(pxObject *pI)
@@ -78,7 +79,10 @@ static const pxObjectVt pxMinder_itemObjectVt =
     pxObject_cloneForbidden, // TODO
     sizeof(pxMinder_item_interfaces)/sizeof(pxMinder_item_interfaces[0]),
     pxMinder_item_interfaces,
-    0, NULL,
+    sizeof(pxMinder_item),
+    offsetof(pxMinder_item, objectStruct.pObjectVt),
+    0,
+    NULL,
 };
 
 static pxObject *pxMinder_register(pxMinder *pI, pxObject *pManaged)
@@ -142,9 +146,14 @@ static const pxObjectVt pxMinder_ObjectVt =
     },
     pxMinder_destroy,
     pxObject_cloneForbidden, // TODO
+
     sizeof(pxMinder_interfaces)/sizeof(pxMinder_interfaces[0]),
     pxMinder_interfaces,
-    0, NULL
+
+    sizeof(pxMinder_s),
+    offsetof(pxMinder_s, objectStruct.pObjectVt),
+    0,
+    NULL
 };
 
 

@@ -112,9 +112,14 @@ static const pxObjectVt pxAllocLocalObjectVt =
     },
     pxObject_destroy,
     pxObject_cloneForbidden,
+
     sizeof(pxAllocLocal_interfaces)/sizeof(pxAllocLocal_interfaces[0]),
     pxAllocLocal_interfaces,
-    0, NULL,
+
+    sizeof(pxAllocLocal_s),
+    offsetof(pxAllocLocal_s, objectStruct.pObjectVt),
+    0,
+    NULL,
 };
 
 pxAlloc *pxAllocLocalInit(pxAlignAll *pSpace, size_t size)

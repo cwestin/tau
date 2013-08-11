@@ -94,7 +94,10 @@ static const pxObjectVt pxFoo_ObjectVt =
     pxObject_cloneForbidden, // TODO
     sizeof(pxFoo_interfaces)/sizeof(pxFoo_interfaces[0]),
     pxFoo_interfaces,
-    0, NULL,
+    sizeof(MyObject), 
+    offsetof(MyObject, objectStruct.pObjectVt),
+    0,
+    NULL,
 };
 
 static void testpxObject()
