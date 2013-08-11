@@ -39,7 +39,7 @@ typedef struct pxInterfaceVt
        @fn getInterface @memberof pxInterface
        Get another interface pointer from this object.
 
-       @param pThis pointer to an interface
+       @param pThis pointer to the interface this invocation is happening on
        @param pName the name of the desired interface. Note that the current
          implementation assumes the standard name symbol is used, and only
          compares the name symbol addresses when names are referred to locally

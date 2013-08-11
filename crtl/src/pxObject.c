@@ -64,25 +64,14 @@ void pxObject_destroy(pxObject *pI)
     pxObjectStruct *const pThis =
         PXINTERFACE_STRUCT(pI, pxObjectStruct, pObjectVt);
 
-    // mixins have to be destroyed in the reverse order, so reverse the list
-    // TODO do this recursively, and don't remove a mixin until it is done
-    pxObjectStruct *pMixinList = NULL;
-    pxObjectStruct *pNextMixin;
-    while((pNextMixin = pThis->pNextMixin))
+    // mixins have to be destroyed in the reverse order, and need to be kept
+    // around until they are destroyed, in case they depend on each other
+    if (pThis->pNextMixin)
     {
-        // move it from this object's list to the local list
-        pThis->pNextMixin = pNextMixin->pNextMixin;
-        pNextMixin->pNextMixin = pMixinList;
-        pMixinList = pNextMixin;
-    }
-
-    // destroy the mixins
-    while((pNextMixin = pMixinList))
-    {
-        PXOBJECT_destroy((pxObject *)&pNextMixin->pObjectVt);
+        PXOBJECT_destroy((pxObject *)&pThis->pNextMixin->pObjectVt);
 
         // remove the destroyed one from the list
-        pMixinList = pNextMixin->pNextMixin;
+        pThis->pNextMixin = NULL;
     }
 }
 
@@ -97,8 +86,7 @@ void pxObjectStructInit(
     // if there's an owner add this to it
     if (pIOwner)
     {
-        pxObject *const pOOwner = PXINTERFACE_getInterface(
-            (pxObject *)pIOwner, pxObject); // NB: wrong cast, but irrelevant
+        pxObject *const pOOwner = PXINTERFACE_getInterface(pIOwner, pxObject);
         pxObjectStruct *const pOwner =
             PXINTERFACE_STRUCT(pOOwner, pxObjectStruct, pObjectVt);
 

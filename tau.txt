@@ -1,5 +1,3 @@
-(*) Regularize pxInterface vtable dereferencing
-
 (*) fix average bucket size handling in pxHm
 
 (*) Define file headers
