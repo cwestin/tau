@@ -1,3 +1,19 @@
+/*
+  tau - http://github.com/cwestin/tau
+  Copyright 2013 Chris Westin
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+ */
 
 #ifndef PXHM_H
 #include "pxHm.h"
@@ -20,11 +36,25 @@
 #endif
 
 
+/*
+  Each bucket is a linked list of entries, kept sorted in ascending order of
+  raw hash value.
+*/
 typedef struct pxHmBucket
 {
     pxHmEntry *pEntryList;
 } pxHmBucket;
 
+/**
+   Resize the hash map.
+
+   This will double the size of the bucket array. Assumes the bucket array size
+   is already a power of two. For each existing bucket, will traverse the
+   bucket and move those elements which should now be in the newly created
+   higher power bucket to that bucket.
+
+   @param pMap the hash map.
+ */
 static void pxHmMapResize(pxHmMap *pMap)
 {
     pxHmBucket *const pOldBucket = pMap->pBucket;
@@ -103,7 +133,7 @@ pxHmEntry *pxHmMapFind(pxHmMap *pMap, const void *pKey,
         const int thisHash = (*ppEntry)->rawHash;
         if (rawHash == thisHash)
         {
-            const void *const pThisKey = 
+            const void *const pThisKey =
                 ((char *)(*ppEntry)) + pMap->pDope->keyOffset;
             const int cmp = (*pMap->pDope->cmp)(pKey, pThisKey);
             if (!cmp)
@@ -137,7 +167,8 @@ pxHmEntry *pxHmMapFind(pxHmMap *pMap, const void *pKey,
         ++pMap->nEntries;
 
         // before leaving, check to see if we need to rehash
-        if (pMap->nEntries / pMap->nBuckets > pMap->pDope->avgBucket)
+        const size_t avgBucket = pMap->pDope->avgBucket;
+        if ((pMap->nEntries + avgBucket - 1) / pMap->nBuckets > avgBucket)
             pxHmMapResize(pMap);
 
         return pEntry;
