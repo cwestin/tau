@@ -66,25 +66,27 @@ static void MyDestroyable_destroy(pxObject *pI)
     *pThis->pIsDestroyed = true;
 }
 
-static const pxObjectLookup myDestroyableTable[] =
+static const pxObjectInterface MyDestroyable_interfaces[] =
 {
     {pxObjectName, 0},
 };
 
-static const pxObjectVt myDestroyableObjectVt =
+static const pxObjectVt MyDestroyable_ObjectVt =
 {
     {
         0,
         pxObject_getInterface,
     },
-    sizeof(myDestroyableTable)/sizeof(myDestroyableTable[0]),
-    myDestroyableTable,
     MyDestroyable_destroy,
+    pxObject_cloneForbidden, // TODO
+    sizeof(MyDestroyable_interfaces)/sizeof(MyDestroyable_interfaces[0]),
+    MyDestroyable_interfaces,
+    0, NULL,
 };
 
 static void MyDestroyableInit(MyDestroyable *pMD, bool *pBool)
 {
-    pxObjectStructInit(&pMD->objectStruct, &myDestroyableObjectVt, NULL);
+    pxObjectStructInit(&pMD->objectStruct, &MyDestroyable_ObjectVt, NULL);
     pMD->pIsDestroyed = pBool;
     *pBool = false;
 }

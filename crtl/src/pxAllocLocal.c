@@ -98,7 +98,7 @@ static const pxAllocVt pxAllocLocalAllocVt =
     pxAllocLocal_alloc,
 };
 
-static const pxObjectLookup pxAllocLocal_lookup[] =
+static const pxObjectInterface pxAllocLocal_interfaces[] =
 {
     {pxAllocName, offsetof(pxAllocLocal_s, objectStruct.pObjectVt) - offsetof(pxAllocLocal_s, pAllocVt)},
     {pxObjectName, 0},
@@ -110,9 +110,11 @@ static const pxObjectVt pxAllocLocalObjectVt =
         0,
         pxObject_getInterface,
     },
-    sizeof(pxAllocLocal_lookup)/sizeof(pxAllocLocal_lookup[0]),
-    pxAllocLocal_lookup,
     pxObject_destroy,
+    pxObject_cloneForbidden,
+    sizeof(pxAllocLocal_interfaces)/sizeof(pxAllocLocal_interfaces[0]),
+    pxAllocLocal_interfaces,
+    0, NULL,
 };
 
 pxAlloc *pxAllocLocalInit(pxAlignAll *pSpace, size_t size)

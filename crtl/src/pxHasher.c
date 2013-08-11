@@ -41,7 +41,7 @@ typedef struct
 } pxHasher_s;
 
 
-static const pxObjectLookup pxHasher_lookup[] =
+static const pxObjectInterface pxHasher_interfaces[] =
 {
     {pxHasherName, 0},
     {pxObjectName, 0},
@@ -53,9 +53,11 @@ static const pxObjectVt pxHasherObjectVt =
         0,
         pxObject_getInterface,
     },
-    sizeof(pxHasher_lookup)/sizeof(pxHasher_lookup[0]),
-    pxHasher_lookup,
     pxObject_destroy,
+    pxObject_clone,
+    sizeof(pxHasher_interfaces)/sizeof(pxHasher_interfaces[0]),
+    pxHasher_interfaces,
+    0, NULL,
 };
 
 pxHasher *pxHasherCreate(pxAlloc *pAlloc, pxInterface *pOwner)

@@ -187,7 +187,7 @@ static const pxHashMapVt pxHashMapLocalHashMapVt =
     pxHashMapLocal_put,
 };
 
-static const pxObjectLookup pxHashMapLocal_lookup[] =
+static const pxObjectInterface pxHashMapLocal_interfaces[] =
 {
     {pxHashMapName,
      offsetof(pxHashMapLocal_s, objectStruct.pObjectVt) -
@@ -201,9 +201,11 @@ static const pxObjectVt pxHashMapLocalObjectVt =
         0,
         pxObject_getInterface,
     },
-    sizeof(pxHashMapLocal_lookup)/sizeof(pxHashMapLocal_lookup[0]),
-    pxHashMapLocal_lookup,
     pxObject_destroy,
+    pxObject_cloneForbidden, // TODO
+    sizeof(pxHashMapLocal_interfaces)/sizeof(pxHashMapLocal_interfaces[0]),
+    pxHashMapLocal_interfaces,
+    0, NULL,
 };
 
 pxHashMap *pxHashMapLocalCreate(

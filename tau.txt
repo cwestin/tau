@@ -2,9 +2,12 @@
 - Add throughout (in progress)
 - set up for doxygen (early experiments not great; considering)
 
-(*) add clone to pxObject
+(*) implement pxObject::clone()
+- various TODOs
 
 (*) Finish pxHashMapLocal
+- should I really finish this? Or should this be implemented in tau space now
+  that I have pxHm for clone's use?
 - fix average bucket size handling similar to pxHm
 - requires cloning objects to clone the key into the right arena
 

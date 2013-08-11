@@ -192,7 +192,7 @@ static const pxAllocDebugVt pxAllocDebugAllocDebugVt =
     pxAllocDebug_countPieces,
 };
 
-static const pxObjectLookup pxAllocDebug_lookup[] =
+static const pxObjectInterface pxAllocDebug_interfaces[] =
 {
     {pxAllocName, offsetof(pxAllocDebug_s, objectStruct.pObjectVt) - offsetof(pxAllocDebug_s, pAllocVt)},
     {pxFreeName, offsetof(pxAllocDebug_s, objectStruct.pObjectVt) - offsetof(pxAllocDebug_s, pFreeVt)},
@@ -206,9 +206,11 @@ static const pxObjectVt pxAllocDebugObjectVt =
         0,
         pxObject_getInterface,
     },
-    sizeof(pxAllocDebug_lookup)/sizeof(pxAllocDebug_lookup[0]),
-    pxAllocDebug_lookup,
     pxAllocDebug_destroy,
+    pxObject_cloneForbidden,
+    sizeof(pxAllocDebug_interfaces)/sizeof(pxAllocDebug_interfaces[0]),
+    pxAllocDebug_interfaces,
+    0, NULL,
 };
 
 pxAlloc *pxAllocDebugCreate(pxAlloc *pAlloc, pxInterface *pOwner)

@@ -114,7 +114,7 @@ static const pxComparableVt pxHashableVarComparableVt =
 };
 
 
-static const pxObjectLookup pxHashableVar_lookup[] =
+static const pxObjectInterface pxHashableVar_interfaces[] =
 {
     {pxComparableName,
      offsetof(pxHashableVar_s, objectStruct.pObjectVt) -
@@ -131,9 +131,11 @@ static const pxObjectVt pxHashableVarObjectVt =
         0,
         pxObject_getInterface,
     },
-    sizeof(pxHashableVar_lookup)/sizeof(pxHashableVar_lookup[0]),
-    pxHashableVar_lookup,
     pxObject_destroy,
+    pxObject_cloneForbidden,
+    sizeof(pxHashableVar_interfaces)/sizeof(pxHashableVar_interfaces[0]),
+    pxHashableVar_interfaces,
+    0, NULL,
 };
 
 pxHashable *pxHashableVarInit(

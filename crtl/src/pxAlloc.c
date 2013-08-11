@@ -19,4 +19,9 @@
 #include "pxAlloc.h"
 #endif
 
+#ifndef PXEXIT_H
+#include "pxExit.h"
+#endif
+
+
 const char pxAllocName[] = "pxAlloc";

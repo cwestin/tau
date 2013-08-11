@@ -24,6 +24,18 @@
 #define PX_STDLIB_H
 #endif
 
+#ifndef PXALLOC_H
+#include "pxAlloc.h"
+#endif
+
+#ifndef PXEXIT_H
+#include "pxExit.h"
+#endif
+
+#ifndef PXHM_H
+#include "pxHm.h"
+#endif
+
 
 const char pxObjectName[] = "pxObject";
 
@@ -31,13 +43,14 @@ static pxInterface *pxObjectStruct_getInterface(
     const pxObjectStruct *const pObjectStruct, const char *const pName)
 {
     // check through interfaces this object implements directly
-    const pxObjectLookup *pLookup = pObjectStruct->pObjectVt->pLookup;
-    for(int i = pObjectStruct->pObjectVt->nLookup; i; ++pLookup, --i)
+    const pxObjectInterface *pInterface = pObjectStruct->pObjectVt->pInterface;
+    for(int i = pObjectStruct->pObjectVt->nInterface; i; ++pInterface, --i)
     {
-        if (pLookup->pName == pName)
+        if (pInterface->pName == pName)
         {
             return (pxInterface *)
-                (((char *)&pObjectStruct->pObjectVt) - pLookup->interfaceOffset);
+                (((char *)&pObjectStruct->pObjectVt) -
+                 pInterface->interfaceOffset);
         }
     }
 
@@ -89,6 +102,22 @@ void pxObject_destroy(pxObject *pI)
         // remove the destroyed one from the list
         pThis->pNextMixin = NULL;
     }
+}
+
+pxInterface *pxObject_clone(pxObject *pI, pxAlloc *pAlloc,
+                            const char *const pIName, pxHmMap *pMap)
+{
+    pxExit("pxObject_clone: unimplemented\n");
+
+    return NULL;
+}
+
+pxInterface *pxObject_cloneForbidden(pxObject *pI, pxAlloc *pAlloc,
+                                     const char *const pIName, pxHmMap *pMap)
+{
+    pxExit("pxObject_clone: attempt to clone uncloneable object\n");
+
+    return NULL;
 }
 
 void pxObjectStructInit(

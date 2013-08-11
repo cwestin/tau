@@ -34,32 +34,47 @@
    All objects implement this interface, which is a derivative of pxInterface.
 
    At this time, pxObject is limited to object lifecycle management methods
-   that are only to be used by the tau runtime, and this interface should not
-   be exposed in tau space. pxObject also exposes metadata through virtual
-   data, but this is used exclusively by canned pxObject methods.
+   that are only to be used by the tau runtime system, and this interface
+   should not be exposed (directly) in tau space, but is used by language
+   features. pxObject also exposes metadata through virtual data, but this is
+   used exclusively by canned pxObject methods.
 */
 
 /*
-  pxObjectLookup is used to create lookup tables for interfaces implemented by
-  an object. The concrete implementation defines an array of pxObjectLookup
-  structures populated with the name and offset of each interface the object
-  has an implementation for. pxObject_getInterface provides a canned
-  implementation of pxInterface::getInterface that will operate on this data.
-  The lookup table is pointed to by the pxObject vtable.
+  pxObjectInterface is used to create lookup tables for interfaces implemented
+  by an object. The concrete implementation defines an array of
+  pxObjectInterface structures populated with the name and offset of each
+  interface the object has an implementation for. pxObject_getInterface
+  provides a canned implementation of pxInterface::getInterface that will
+  operate on this data. The lookup table is pointed to by the pxObject vtable.
  */
 typedef struct
 {
     const char *const pName; // name of the interface: standard symbol address
     ptrdiff_t interfaceOffset; // offset from pxObject interface to this interface
-} pxObjectLookup;
+} pxObjectInterface;
+
+/*
+  pxObjectMember is used to create lookup tables for members of an object.
+
+  These carry metadata used in object lifecycle management. The current
+  application is a data-driven implementation of pxObject_clone(). An object
+  implementation must properly describe pointers to other objects with an
+  entry in its member table in order for clone to work.
+ */
+typedef struct
+{
+    const char *const pName; // pointer to the official interface name symbol
+    ptrdiff_t memberOffset; // offset from pxObject interface to this member
+} pxObjectMember;
+
+struct pxAlloc;
+struct pxHmMap;
 
 struct pxObject;
 typedef struct pxObjectVt
 {
     pxInterfaceVt interfaceVt;
-
-    size_t nLookup; // size of the lookup table as number of entries
-    const pxObjectLookup *pLookup; // the lookup table
 
     /**
        @fn destroy @memberof pxObject
@@ -79,6 +94,40 @@ typedef struct pxObjectVt
 #define PXOBJECT_destroy(pI) \
     ((*(pI)->pVt->destroy)((pI)))
 
+    /**
+       @fn clone @memberof pxObject
+       Clone this object into a new arena.
+
+       Note that if this object has already been cloned, it will be known
+       inside pMap, and then all that happens is the requested interface is
+       returned. This is used to avoid creating multiple copies of the same
+       object. The hash map provides the ability to clone a graph of objects,
+       starting from any one of them.
+
+       @param pObject pointer to the pxObject interface for this object
+       @param pAlloc the arena to clone the object into
+       @param pIName the interface to return; unlike PXINTERFACE_getInterface(),
+         this macro does *not* create the name symbol through preprocessor
+         manipulation; the expectation is that this will use internal variables,
+         so that would not be useful here
+       @param pMap a mapping of objects created so far during the cloning
+         process. At the top level, this is expected to be NULL; when that is
+         the case, the system-supplied pxObject_clone() implementation will
+         initialize and manage this.
+       @returns a pointer to the requested interface on a clone of the object
+    */
+    pxInterface *(*clone)(
+        struct pxObject *pObject, struct pxAlloc *pAlloc,
+        const char *const pIName, struct pxHmMap *pMap);
+
+#define PXOBJECT_clone(pI, pAlloc, pIName, pMap) \
+    ((*(pI)->pVt->clone)(pI, pAlloc, pIName, pMap))
+
+    size_t nInterface; // size of the interface table as a number of entries
+    const pxObjectInterface *pInterface; // the interface table
+    size_t nMember; // size of the member table as a number of entries
+    const pxObjectMember *pMember;
+
 } pxObjectVt;
 
 typedef struct pxObject
@@ -90,8 +139,8 @@ extern const char pxObjectName[];
 
 
 /**
-  Canned implementation of pxInterface::getInterface() driven by pxObjectLookup
-  data.
+  Canned implementation of pxInterface::getInterface() driven by
+  pxObjectInterface data.
 
   Use a reference to this function pointer in the interfaceVt initializer for
   your object's definition of every interface it implements.
@@ -105,7 +154,7 @@ extern const char pxObjectName[];
 pxInterface *pxObject_getInterface(pxInterface *pI, const char *const pName);
 
 /**
-  Canned implementation of pxObject::destroy() driven by pxObjectMeta data.
+  Canned implementation of pxObject::destroy() driven by pxObjectStruct data.
 
   Use a reference to this function pointer in the pxObjectVt initializer for
   your object's definition of its implementation of pxObject.
@@ -114,6 +163,28 @@ pxInterface *pxObject_getInterface(pxInterface *pI, const char *const pName);
  */
 void pxObject_destroy(pxObject *pI);
 
+/**
+   Canned implementation of pxObject::clone() driven by pxObjectMember data.
+
+   Use a reference to this function pointer in the pxObjectVt initializer for
+   your object's definition of its implementation of pxObject.
+
+   This implementation assumes the pxObject interface is implemented through
+   a pxObjectStruct, and will use that to find the object's run-time metadata.
+*/
+pxInterface *pxObject_clone(pxObject *pI, struct pxAlloc *pAlloc,
+                            const char *const pIName, struct pxHmMap *pMap);
+
+/**
+   Canned implementation for pxObject::clone() for objects which cannot be
+   cloned.
+
+   Some objects on the borders of tau space do not support cloning; this can be
+   used for their implementation. Currently, it exits with an error.
+*/
+pxInterface *pxObject_cloneForbidden(
+    struct pxObject *pI, struct pxAlloc *pAlloc,
+    const char *const pIName, struct pxHmMap *pMap);
 
 /*
   pxObjectStruct: embed this in your object to represent your object's

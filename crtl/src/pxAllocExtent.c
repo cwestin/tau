@@ -152,7 +152,7 @@ static const pxAllocVt pxAllocExtentAllocVt =
     pxAllocExtent_alloc,
 };
 
-static const pxObjectLookup pxAllocExtent_lookup[] =
+static const pxObjectInterface pxAllocExtent_interfaces[] =
 {
     {pxAllocName, offsetof(pxAllocExtent_s, objectStruct.pObjectVt) - offsetof(pxAllocExtent_s, pAllocVt)},
     {pxObjectName, 0},
@@ -164,9 +164,11 @@ static const pxObjectVt pxAllocExtent_ObjectVt =
         0,
         pxObject_getInterface,
     },
-    sizeof(pxAllocExtent_lookup)/sizeof(pxAllocExtent_lookup[0]),
-    pxAllocExtent_lookup,
     pxAllocExtent_destroy,
+    pxObject_cloneForbidden,
+    sizeof(pxAllocExtent_interfaces)/sizeof(pxAllocExtent_interfaces[0]),
+    pxAllocExtent_interfaces,
+    0, NULL,
 };
 
 pxAlloc *pxAllocExtentCreate(

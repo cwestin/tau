@@ -49,13 +49,13 @@ typedef struct
     pxObjectStruct objectStruct;
     pxObject *pManaged;
     pxDllLink link;
-} minderObject;
+} pxMinder_item;
 
-static void minderObject_destroy(pxObject *pI)
+static void pxMinder_item_destroy(pxObject *pI)
 {
     // destroying a minder object is the way to deregister a managed object
-    minderObject *const pMO =
-        PXINTERFACE_STRUCT(pI, minderObject, objectStruct.pObjectVt);
+    pxMinder_item *const pMO =
+        PXINTERFACE_STRUCT(pI, pxMinder_item, objectStruct.pObjectVt);
     pxDllRemove(&pMO->link);
     pMO->pManaged = NULL;
 
@@ -63,20 +63,22 @@ static void minderObject_destroy(pxObject *pI)
     pxObject_destroy(pI);
 }
 
-static const pxObjectLookup minderObjectObjectTable[] =
+static const pxObjectInterface pxMinder_item_interfaces[] =
 {
     {pxObjectName, 0},
 };
 
-static const pxObjectVt minderObjectObjectVt =
+static const pxObjectVt pxMinder_itemObjectVt =
 {
     {
         0,
         pxObject_getInterface,
     },
-    sizeof(minderObjectObjectTable)/sizeof(minderObjectObjectTable[0]),
-    minderObjectObjectTable,
-    minderObject_destroy,
+    pxMinder_item_destroy,
+    pxObject_cloneForbidden, // TODO
+    sizeof(pxMinder_item_interfaces)/sizeof(pxMinder_item_interfaces[0]),
+    pxMinder_item_interfaces,
+    0, NULL,
 };
 
 static pxObject *pxMinder_register(pxMinder *pI, pxObject *pManaged)
@@ -84,18 +86,18 @@ static pxObject *pxMinder_register(pxMinder *pI, pxObject *pManaged)
     pxMinder_s *const pThis = PXINTERFACE_STRUCT(pI, pxMinder_s, pMinderVt);
 
     // allocate a place to hang on to this
-    minderObject *const pMO = (minderObject *)
+    pxMinder_item *const pMO = (pxMinder_item *)
         PXALLOC_alloc(pThis->pAlloc, sizeof(*pMO), PXALLOC_F_DIRTY);
 
     // initialize
-    pxObjectStructInit(&pMO->objectStruct, &minderObjectObjectVt, NULL);
+    pxObjectStructInit(&pMO->objectStruct, &pxMinder_itemObjectVt, NULL);
     pMO->pManaged = pManaged;
     pxDllAddAfter(&pMO->link, &pThis->list);
 
     return (pxObject *)&pMO->objectStruct.pObjectVt;
 }
 
-static void minder_destroy(pxObject *pI)
+static void pxMinder_destroy(pxObject *pI)
 {
     pxMinder_s *const pThis = PXINTERFACE_STRUCT(pI, pxMinder_s, objectStruct.pObjectVt);
 
@@ -103,7 +105,7 @@ static void minder_destroy(pxObject *pI)
     pxDllLink *pLink;
     while((pLink = pxDllGetLast(&pThis->list)))
     {
-        minderObject *const pMO = PXDLL_STRUCT(pLink, minderObject, link);
+        pxMinder_item *const pMO = PXDLL_STRUCT(pLink, pxMinder_item, link);
 
         // remove it from the list
         pxDllRemove(&pMO->link);
@@ -117,7 +119,7 @@ static void minder_destroy(pxObject *pI)
     pxObject_destroy(pI);
 }
 
-static const pxMinderVt minderVt =
+static const pxMinderVt pxMinder_MinderVt =
 {
     {
         offsetof(pxMinder_s, objectStruct.pObjectVt) - offsetof(pxMinder_s, pMinderVt),
@@ -126,21 +128,23 @@ static const pxMinderVt minderVt =
     pxMinder_register,
 };
 
-static const pxObjectLookup minderObjectTable[] =
+static const pxObjectInterface pxMinder_interfaces[] =
 {
     {pxMinderName, offsetof(pxMinder_s, objectStruct.pObjectVt) - offsetof(pxMinder_s, pMinderVt)},
     {pxObjectName, 0},
 };
 
-static const pxObjectVt minderObjectVt =
+static const pxObjectVt pxMinder_ObjectVt =
 {
     {
         0,
         pxObject_getInterface,
     },
-    sizeof(minderObjectTable)/sizeof(minderObjectTable[0]),
-    minderObjectTable,
-    minder_destroy,
+    pxMinder_destroy,
+    pxObject_cloneForbidden, // TODO
+    sizeof(pxMinder_interfaces)/sizeof(pxMinder_interfaces[0]),
+    pxMinder_interfaces,
+    0, NULL
 };
 
 
@@ -149,8 +153,8 @@ pxMinder *pxMinderCreate(pxAlloc *pAlloc, pxInterface *pOwner)
     pxMinder_s *const pMinder =
         PXALLOC_alloc(pAlloc, sizeof(*pMinder), PXALLOC_F_DIRTY);
 
-    pMinder->pMinderVt = &minderVt;
-    pxObjectStructInit(&pMinder->objectStruct, &minderObjectVt, pOwner);
+    pMinder->pMinderVt = &pxMinder_MinderVt;
+    pxObjectStructInit(&pMinder->objectStruct, &pxMinder_ObjectVt, pOwner);
 
     pMinder->pAlloc = pAlloc;
     pxDllInit(&pMinder->list);

@@ -147,7 +147,7 @@ static const pxAllocReuseVt pxAllocReuseAllocReuseVt =
     pxAllocReuse_reuse,
 };
 
-static const pxObjectLookup pxAllocReuse_lookup[] =
+static const pxObjectInterface pxAllocReuse_interfaces[] =
 {
     {pxAllocName, offsetof(pxAllocReuse_s, objectStruct.pObjectVt) - offsetof(pxAllocReuse_s, pAllocVt)},
     {pxAllocReuseName, offsetof(pxAllocReuse_s, objectStruct.pObjectVt) - offsetof(pxAllocReuse_s, pAllocReuseVt)},
@@ -160,9 +160,11 @@ static const pxObjectVt pxAllocReuseObjectVt =
         0,
         pxObject_getInterface,
     },
-    sizeof(pxAllocReuse_lookup)/sizeof(pxAllocReuse_lookup[0]),
-    pxAllocReuse_lookup,
     pxObject_destroy,
+    pxObject_cloneForbidden,
+    sizeof(pxAllocReuse_interfaces)/sizeof(pxAllocReuse_interfaces[0]),
+    pxAllocReuse_interfaces,
+    0, NULL,
 };
 
 pxAlloc *pxAllocReuseCreate(pxAlloc *pAlloc)

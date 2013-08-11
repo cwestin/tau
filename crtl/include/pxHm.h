@@ -123,7 +123,7 @@ typedef struct
    The hash map's private state. Presented in this form so that you may
    embed it. Initialize this with pxHmMapInit() before use.
  */
-typedef struct
+typedef struct pxHmMap
 {
 // private:    
     struct pxHmBucket *pBucket; // the bucket array

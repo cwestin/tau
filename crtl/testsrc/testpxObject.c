@@ -68,7 +68,7 @@ static void MyObject_f(pxFoo *pFoo, int i)
     pThis->i += i;
 }
 
-static const pxFooVt fooVt =
+static const pxFooVt pxFoo_FooVt =
 {
     {
         offsetof(MyObject, objectStruct.pObjectVt) - offsetof(MyObject, pFooVt),
@@ -78,29 +78,31 @@ static const pxFooVt fooVt =
 };
 
 
-static const pxObjectLookup interfaceTable[] =
+static const pxObjectInterface pxFoo_interfaces[] =
 {
     {pxFooName, offsetof(MyObject, objectStruct.pObjectVt) - offsetof(MyObject, pFooVt)},
     {pxObjectName, 0},
 };
 
-static const pxObjectVt objectVt =
+static const pxObjectVt pxFoo_ObjectVt =
 {
     {
         0,
         pxObject_getInterface,
     },
-    sizeof(interfaceTable)/sizeof(interfaceTable[0]),
-    interfaceTable,
     pxObject_destroy,
+    pxObject_cloneForbidden, // TODO
+    sizeof(pxFoo_interfaces)/sizeof(pxFoo_interfaces[0]),
+    pxFoo_interfaces,
+    0, NULL,
 };
 
 static void testpxObject()
 {
     // initialize the object
     MyObject *const pM = (MyObject *)malloc(sizeof(MyObject));
-    pM->pFooVt = &fooVt;
-    pxObjectStructInit(&pM->objectStruct, &objectVt, NULL);
+    pM->pFooVt = &pxFoo_FooVt;
+    pxObjectStructInit(&pM->objectStruct, &pxFoo_ObjectVt, NULL);
     pM->i = 0;
 
     // try calling a method

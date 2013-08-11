@@ -104,7 +104,7 @@ static const pxFreeVt pxAllocSystemFreeVt =
     pxAllocSystem_free,
 };
 
-static const pxObjectLookup pxAllocSystem_lookup[] =
+static const pxObjectInterface pxAllocSystem_interfaces[] =
 {
     {pxAllocName, offsetof(pxAllocSystem_s, objectStruct.pObjectVt) - offsetof(pxAllocSystem_s, pAllocVt)},
     {pxFreeName, offsetof(pxAllocSystem_s, objectStruct.pObjectVt) - offsetof(pxAllocSystem_s, pFreeVt)},
@@ -117,9 +117,11 @@ static const pxObjectVt pxAllocSystemObjectVt =
         0,
         pxObject_getInterface,
     },
-    sizeof(pxAllocSystem_lookup)/sizeof(pxAllocSystem_lookup[0]),
-    pxAllocSystem_lookup,
     pxObject_destroy,
+    pxObject_cloneForbidden,
+    sizeof(pxAllocSystem_interfaces)/sizeof(pxAllocSystem_interfaces[0]),
+    pxAllocSystem_interfaces,
+    0, NULL,
 };
 
 static pxAllocSystem_s *pxAllocSystemCreate()
