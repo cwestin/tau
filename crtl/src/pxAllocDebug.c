@@ -1,3 +1,19 @@
+/*
+  tau - http://github.com/cwestin/tau
+  Copyright 2013 Chris Westin
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+ */
 
 #ifndef PXALLOCDEBUG_H
 #include "pxAllocDebug.h"
@@ -38,9 +54,9 @@ const char pxAllocDebugName[] = "pxAllocDebug";
 
 typedef struct
 {
-    pxAlloc *pAlloc;
-    pxDllHead list;
-    unsigned sequence;
+    pxAlloc *pAlloc; // underlying allocator
+    pxDllHead list; // list of allocated pxAllocDebug_item
+    unsigned sequence; // allocation sequence number
 
     const pxAllocVt *pAllocVt;
     const pxFreeVt *pFreeVt;
@@ -50,11 +66,11 @@ typedef struct
 
 typedef struct
 {
-    pxDllLink link;
-    int sequence;
-    pxAllocDebug_s *pOwner;
+    pxDllLink link; // link on list of allocated pieces
+    int sequence; // immutable once set
+    pxAllocDebug_s *pOwner; // owning allocator
 
-    pxAlignAll data;
+    pxAlignAll data; // user data begins here
 } pxAllocDebug_item;
 
 
