@@ -58,7 +58,7 @@ static int pxHashableVar_compare(pxComparable *pI, pxInterface *pOther)
 
     // the two objects have to be of the same class
     pxObject *const pObject =
-        PXINTERFACE_getInterface((pxObject *)pOther, pxObject);
+        PXINTERFACE_getInterface(pOther, pxObject);
     if (pObject->pVt != pThis->objectStruct.pObjectVt)
         pxExit("pxHashableVar_compare: objects of different class\n");
 

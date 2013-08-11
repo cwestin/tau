@@ -1,10 +1,10 @@
-(*) fix average bucket size handling in pxHm
+(*) Regularize pxInterface vtable dereferencing
 
-(*) Add license file
+(*) fix average bucket size handling in pxHm
 
 (*) Define file headers
 - Add throughout
-- doxygen make rules
+- set up for doxygen
 
 (*) add clone to pxObject
 

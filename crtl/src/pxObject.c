@@ -43,7 +43,7 @@ static pxInterface *pxObjectStruct_getInterface(
 pxInterface *pxObject_getInterface(pxInterface *pI, const char *const pName)
 {
     pxObject *const pObject =
-        (pxObject *)(((char *)pI) + pI->pVt->pxObjectOffset);
+        (pxObject *)(((char *)pI) + pI->pVt->interfaceVt.pxObjectOffset);
     pxObjectStruct *const pObjectStruct =
         PXINTERFACE_STRUCT(pObject, pxObjectStruct, pObjectVt);
     
@@ -65,6 +65,7 @@ void pxObject_destroy(pxObject *pI)
         PXINTERFACE_STRUCT(pI, pxObjectStruct, pObjectVt);
 
     // mixins have to be destroyed in the reverse order, so reverse the list
+    // TODO do this recursively, and don't remove a mixin until it is done
     pxObjectStruct *pMixinList = NULL;
     pxObjectStruct *pNextMixin;
     while((pNextMixin = pThis->pNextMixin))
