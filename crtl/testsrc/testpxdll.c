@@ -67,7 +67,7 @@ static void testpxDll()
 
         IntStruct *pI = PXDLL_STRUCT(pLink, IntStruct, link);
         if (pI->x != i)
-            fprintf(stderr, "testpxdll: invalid value in list\n");
+            fprintf(stderr, "testpxDll: invalid value in list\n");
 
         pxDllRemove(pLink);
         free(pI);
@@ -77,7 +77,7 @@ static void testpxDll()
 
     if (i != nInts)
         fprintf(stderr,
-                "testpxdll: didn't see all ints in list (i = %d, nInts = %d)\n",
+                "testpxDll: didn't see all ints in list (i = %d, nInts = %d)\n",
                 i, nInts);
 }
 
