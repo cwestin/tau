@@ -189,7 +189,8 @@ static pxHmEntry *pxObject_clone_create(void *const pctx, pxAlloc *const pAlloc)
     void *const pNew =
         PXALLOC_alloc(pCtx->pAlloc, pObjectVt->size, PXALLOC_F_DIRTY);
 
-    // raw copy
+    // raw copy: copies vtable pointers and scalars; everything else has to
+    // be adjusted (by overwriting it) below
     memcpy(pNew, pOld, pObjectVt->size);
 
     // adjust object state
