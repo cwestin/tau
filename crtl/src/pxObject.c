@@ -76,7 +76,7 @@ static pxInterface *pxObjectStruct_getInterface(
     }
 
     // check on our mixins
-    for(const pxObjectStruct *pMixin = pObjectStruct->pNextMixin; pMixin;
+    for(const pxObjectStruct *pMixin = pObjectStruct->pMixinList; pMixin;
         pMixin = pMixin->pNextMixin)
     {
         // For this lookup, we use the direct implementation, otherwise
@@ -109,6 +109,22 @@ pxInterface *pxObject_getInterface(pxInterface *pI, const char *const pName)
     return pxObjectStruct_getInterface(pObjectStruct, pName);
 }
 
+static void pxObject_destroy_mixin(pxObjectStruct *pO)
+{
+    // recursively destroy mixins on the list from last to first
+    if (pO->pNextMixin)
+    {
+        pxObject_destroy_mixin(pO->pNextMixin);
+
+        // remove them from the list as we go (prevents interface lookups on
+        // now-dysfunctional objects)
+        pO->pNextMixin = NULL;
+    }
+
+    // destroy this mixin itself
+    PXOBJECT_destroy((pxObject *)&pO->pObjectVt);
+}
+
 void pxObject_destroy(pxObject *pI)
 {
     pxObjectStruct *const pThis =
@@ -116,12 +132,9 @@ void pxObject_destroy(pxObject *pI)
 
     // mixins have to be destroyed in the reverse order, and need to be kept
     // around until they are destroyed, in case they depend on each other
-    if (pThis->pNextMixin)
+    if (pThis->pMixinList)
     {
-        PXOBJECT_destroy((pxObject *)&pThis->pNextMixin->pObjectVt);
-
-        // remove the destroyed one from the list
-        pThis->pNextMixin = NULL;
+        pxObject_destroy_mixin(pThis->pMixinList);
     }
 }
 
@@ -183,10 +196,8 @@ static pxHmEntry *pxObject_clone_create(void *const pctx, pxAlloc *const pAlloc)
     pxObjectStruct *const pNewThis =
         (pxObjectStruct *)(((char *)pNew) + pObjectVt->objectOffset);
 
-    if (pCtx->pThis->pNextMixin)
+    if (pCtx->pThis->pMixinList)
     {
-        pCtx->pMap = pxObject_clone_mapInit(pCtx->pMap, NULL);
-
         // TODO clone my own mixins
         pxExit("pxObject_clone: mixin cloning unimplemented\n");
     }
@@ -194,7 +205,7 @@ static pxHmEntry *pxObject_clone_create(void *const pctx, pxAlloc *const pAlloc)
     // copy any other objects referenced by pointer members
     if (pObjectVt->nMember)
     {
-        // TODO
+        // TODO clone my members
         pxExit("pxObject_clone: member pointer copy unimplemented\n");
     }
 
@@ -256,6 +267,7 @@ void pxObjectStructInit(
 {
     pObjectStruct->pObjectVt = pVt;
     pObjectStruct->pNextMixin = NULL;
+    pObjectStruct->pMixinList = NULL;
     pObjectStruct->pOwner = NULL;
 
     // if there's an owner add this to it
@@ -269,7 +281,7 @@ void pxObjectStructInit(
 
         // this new object has to go on the end of the owner's mixin list
         pxObjectStruct **ppMixin;
-        for(ppMixin = &pOwner->pNextMixin; *ppMixin;
+        for(ppMixin = &pOwner->pMixinList; *ppMixin;
             ppMixin = &(*ppMixin)->pNextMixin)
             ;
         *ppMixin = pObjectStruct;

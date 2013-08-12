@@ -222,8 +222,9 @@ pxInterface *pxObject_cloneForbidden(
 typedef struct pxObjectStruct
 {
 // private:
-    struct pxObjectStruct *pNextMixin;
-    struct pxObjectStruct *pOwner;
+    struct pxObjectStruct *pNextMixin; // next mixin on owners mixin list
+    struct pxObjectStruct *pMixinList; // mixin list for this, if any
+    struct pxObjectStruct *pOwner; // owner of this mixin, if any
 
     const pxObjectVt *pObjectVt;
 } pxObjectStruct;
