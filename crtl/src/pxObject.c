@@ -198,11 +198,14 @@ static pxHmEntry *pxObject_clone_create(void *const pctx, pxAlloc *const pAlloc)
 
     if (pCtx->pThis->pMixinList)
     {
+        // clone my mixins in the order in which they appear
+        // since we always start with the owner, we know none of these will be
+        // in the map
         // TODO clone my own mixins
         pxExit("pxObject_clone: mixin cloning unimplemented\n");
     }
 
-    // copy any other objects referenced by pointer members
+    // clone any other objects referenced by pointer members
     if (pObjectVt->nMember)
     {
         // TODO clone my members
