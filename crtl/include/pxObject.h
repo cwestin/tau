@@ -169,6 +169,19 @@ pxInterface *pxObject_getInterface(pxInterface *pI, const char *const pName);
 void pxObject_destroy(pxObject *pI);
 
 /**
+   Lazily initialize an intrusive hashmap for use in cloning.
+
+   @param pMap a map pointer, possibly NULL
+   @param pAlloc an allocator that can be used by pxHmMap to allocate entries,
+     may be NULL, in which case an extent allocator will be created on top of
+     the system allocator
+   @returns if pMap is non-NULL, returns it; otherwise, create a new map and
+     return a pointer to that
+*/
+struct pxHmMap *pxObject_clone_mapInit(
+    struct pxHmMap *pMap, struct pxAlloc *pAlloc);
+
+/**
    Canned implementation of pxObject::clone() driven by pxObjectMember data.
 
    Use a reference to this function pointer in the pxObjectVt initializer for
@@ -209,9 +222,10 @@ pxInterface *pxObject_cloneForbidden(
 typedef struct pxObjectStruct
 {
 // private:
-    const pxObjectVt *pObjectVt;
     struct pxObjectStruct *pNextMixin;
     struct pxObjectStruct *pOwner;
+
+    const pxObjectVt *pObjectVt;
 } pxObjectStruct;
 
 /**

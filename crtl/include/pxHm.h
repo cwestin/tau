@@ -159,6 +159,16 @@ static inline unsigned pxHmMapCount(const pxHmMap *pMap)
 }
 
 /**
+   Get the allocator used for hash map entries.
+
+   @param pMap pointer to an initialized hash map
+*/
+static inline struct pxAlloc *pxHmMapGetAlloc(const pxHmMap *pMap)
+{
+    return pMap->pAlloc;
+}
+
+/**
    Find an element in the hashmap.
 
    Finds an element in the hashmap, along with the option to create an element

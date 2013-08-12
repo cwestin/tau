@@ -29,3 +29,13 @@ int pxCmpInt(const void *pL, const void *pR)
 
     return 0;
 }
+
+int pxCmpStructStar(const void *pL, const void *pR)
+{
+    if (*(const struct x **)pL < *(const struct x **)pR)
+        return -1;
+    if (*(const struct x **)pL > *(const struct x **)pR)
+        return 1;
+
+    return 0;
+}

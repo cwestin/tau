@@ -44,6 +44,12 @@ void pxHashVoid(pxHashValue *pHash, const void *p, size_t length)
     }
 }
 
+
+void pxHashInt(pxHashValue *pHash, const void *p)
+{
+    pxHashVoid(pHash, p, sizeof(int));
+}
+
 void pxHashString(pxHashValue *pHash, const void *p)
 {
     for(const unsigned char *pc = (const unsigned char *)p; *pc != '\0'; ++pc)
@@ -57,9 +63,9 @@ void pxHashString(pxHashValue *pHash, const void *p)
     }
 }
 
-void pxHashInt(pxHashValue *pHash, const void *p)
+void pxHashStructStar(pxHashValue *pHash, const void *p)
 {
-    pxHashVoid(pHash, p, sizeof(int));
+    pxHashVoid(pHash, p, sizeof(struct x *));
 }
 
 

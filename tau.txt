@@ -3,6 +3,9 @@
 - set up for doxygen (early experiments not great; considering)
 
 (*) implement pxObject::clone()
+- pxObjectStruct needs to have a separate list for an object's own mixins in
+  order to allow mixins to have mixins; pNextMixin is just the link on the
+  owner's list
 - various TODOs
 
 (*) Finish pxHashMapLocal
@@ -40,3 +43,5 @@
 
 (*) Generate C code for simple program
 Write script to complete build pipeline to generate an executable
+
+(*) Use tcmalloc for pxAllocSystem's implementation?
