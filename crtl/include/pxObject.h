@@ -71,6 +71,8 @@ typedef struct
 struct pxAlloc;
 struct pxHmMap;
 
+struct pxObjectCloner;
+
 struct pxObject;
 typedef struct pxObjectVt
 {
@@ -104,21 +106,17 @@ typedef struct pxObjectVt
        object. The hash map provides the ability to clone a graph of objects,
        starting from any one of them.
 
-       @param pObject pointer to the pxObject interface for this object
-       @param pAlloc the arena to clone the object into
+       @param pI pointer to the object interface
        @param pIName the interface to return; unlike PXINTERFACE_getInterface(),
          this macro does *not* create the name symbol through preprocessor
          manipulation; the expectation is that this will use internal variables,
          so that would not be useful here
-       @param pMap a mapping of objects created so far during the cloning
-         process. At the top level, this is expected to be NULL; when that is
-         the case, the system-supplied pxObject_clone() implementation will
-         initialize and manage this.
+       @param pCloner an initialized pxObjectCloner
        @returns a pointer to the requested interface on a clone of the object
     */
     pxInterface *(*clone)(
-        struct pxObject *pObject, struct pxAlloc *pAlloc,
-        const char *const pIName, struct pxHmMap *pMap);
+        struct pxObject *pI, const char *const pIName,
+        struct pxObjectCloner *pCloner);
 
 #define PXOBJECT_clone(pI, pAlloc, pIName, pMap) \
     ((*(pI)->pVt->clone)(pI, pAlloc, pIName, pMap))
@@ -168,18 +166,51 @@ pxInterface *pxObject_getInterface(pxInterface *pI, const char *const pName);
  */
 void pxObject_destroy(pxObject *pI);
 
-/**
-   Lazily initialize an intrusive hashmap for use in cloning.
 
-   @param pMap a map pointer, possibly NULL
-   @param pAlloc an allocator that can be used by pxHmMap to allocate entries,
-     may be NULL, in which case an extent allocator will be created on top of
-     the system allocator
-   @returns if pMap is non-NULL, returns it; otherwise, create a new map and
-     return a pointer to that
-*/
-struct pxHmMap *pxObject_clone_mapInit(
-    struct pxHmMap *pMap, struct pxAlloc *pAlloc);
+struct pxObjectStruct;
+struct pxObjectCloner_item;
+typedef struct pxObjectCloner
+{
+// private:
+    struct pxObjectStruct *(*clone)(
+        struct pxObjectCloner *pCloner, struct pxObjectStruct *pO);
+    struct pxObjectCloner_Item *pItemList; // list of items to process members
+
+    struct pxHmMap *pMap; // the map of cloned objects, if we have it
+    struct pxAlloc *pAlloc; // the allocator to use for cloning
+} pxObjectCloner;
+
+/**
+   Initialize an object cloner in order to clone one or more objects.
+
+   This is typically used when preparing to clone objects in one arena into
+   another
+
+   @param pCloner an uninitialized pxObjectCloner instance
+   @param pAlloc the arena the objects will be cloned into
+ */
+void pxObjectClonerInitGraph(
+    pxObjectCloner *pCloner, struct pxAlloc *const pAlloc);
+
+/**
+   Initialize an object cloner in order to clone one object.
+
+   This is typically used when preparing to clone an object in order to
+   send it through a channel or to clone it for local user use, such as
+   cloning a key for a hash map.
+
+   @param pCloner an uninitialized pxObjectCloner instance
+   @param pAlloc the arena the objects will be cloned into
+ */
+void pxObjectClonerInitSingle(
+    pxObjectCloner *pCloner, struct pxAlloc *const pAlloc);
+
+/**
+   Cleanup an object cloner that you are finished using
+
+   @param pCloner the object cloner
+ */
+void pxObjectClonerCleanup(pxObjectCloner *pCloner);
 
 /**
    Canned implementation of pxObject::clone() driven by pxObjectMember data.
@@ -189,9 +220,14 @@ struct pxHmMap *pxObject_clone_mapInit(
 
    This implementation assumes the pxObject interface is implemented through
    a pxObjectStruct, and will use that to find the object's run-time metadata.
+
+   @param pI pointer to the object interface
+   @param pIName the interface to return
+   @param pCloner an initialized pxObjectCloner
+   @returns a pointer to the requested interface on the newly cloned object
 */
-pxInterface *pxObject_clone(pxObject *pI, struct pxAlloc *pAlloc,
-                            const char *const pIName, struct pxHmMap *pMap);
+pxInterface *pxObject_clone(
+    pxObject *pI, const char *const pIName, struct pxObjectCloner *pCloner);
 
 /**
    Canned implementation for pxObject::clone() for objects which cannot be
@@ -199,10 +235,14 @@ pxInterface *pxObject_clone(pxObject *pI, struct pxAlloc *pAlloc,
 
    Some objects on the borders of tau space do not support cloning; this can be
    used for their implementation. Currently, it exits with an error.
+
+   @param pI pointer to the object interface
+   @param pIName the interface to return
+   @param pCloner an initialized pxObjectCloner
+   @returns a pointer to the requested interface on the newly cloned object
 */
 pxInterface *pxObject_cloneForbidden(
-    struct pxObject *pI, struct pxAlloc *pAlloc,
-    const char *const pIName, struct pxHmMap *pMap);
+    pxObject *pI, const char *const pIName, struct pxObjectCloner *pCloner);
 
 /*
   pxObjectStruct: embed this in your object to represent your object's

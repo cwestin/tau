@@ -139,126 +139,239 @@ void pxObject_destroy(pxObject *pI)
 }
 
 
-typedef struct
+static inline pxObjectStruct *pxObjectCloner_cloneThis(
+    pxObjectCloner *pCloner, pxObjectStruct *pO)
 {
-    pxObject *pNew;
-    pxObject *pOld;
+    // allocate and copy the object
+    void *const pNew = PXALLOC_alloc(
+        pCloner->pAlloc, pO->pObjectVt->size, PXALLOC_F_DIRTY);
+    memcpy(pNew, ((char *)pO) - pO->pObjectVt->objectOffset,
+           pO->pObjectVt->size);
+
+    return (pxObjectStruct *)(((char *)pNew) + pO->pObjectVt->objectOffset);
+}
+
+/**
+   Clone the first object.
+
+   This starts out assuming that we haven't created the cloned object map
+   because this is a simple stand-alone object. once cloned, if we discover
+   that not to be the case, we set things up to process more objects.
+
+   This does handle mixins, but not members that point to other objects; those
+   must be handled in a second pass in order to avoid the call stack getting
+   as deep as the longest chain of object references in the graph.
+ */
+static pxObjectStruct *pxObjectCloner_cloneSingle(
+    pxObjectCloner *pCloner, pxObjectStruct *pO)
+{
+    // check for any mixins or members that point to other objects
+    if (pO->pMixinList || pO->pObjectVt->nMember)
+    {
+        // we'll have to do this with full context
+        pxObjectClonerInitGraph(pCloner, pCloner->pAlloc);
+
+        // try again with the full setup
+        return (*pCloner->clone)(pCloner, pO);
+    }
+
+    // allocate and copy the object
+    return pxObjectCloner_cloneThis(pCloner, pO);
+}
+
+typedef struct pxObjectCloner_Item
+{
+    pxObjectStruct *pNewO; // cloned object
+    pxObjectStruct *pOldO; // original object
+
+    struct pxObjectCloner_Item *pNextItem; // link on list to process
 
     pxHmEntry hmEntry;
-} pxObject_clone_Item;
+} pxObjectCloner_Item;
 
-static const pxHmDope pxObject_clone_hmDope =
+static const pxHmDope pxObjectCloner_hmDope =
 {
     /* avgBucket */ 3,
-    /* keyOffset */ offsetof(pxObject_clone_Item, pOld),
+    /* keyOffset */ offsetof(pxObjectCloner_Item, pOldO),
     /* hash */ pxHashStructStar,
     /* cmp */ pxCmpStructStar,
 };
 
-pxHmMap *pxObject_clone_mapInit(pxHmMap *pMap, pxAlloc *pAlloc)
-{
-    if (pMap != NULL)
-        return pMap;
-
-    if (pAlloc == NULL)
-    {
-        pxAlloc *const pAllocS = pxAllocSystemGet();
-        pAlloc = pxAllocExtentCreate(pAllocS, 1024, NULL);
-    }
-
-    pMap = (pxHmMap *)PXALLOC_alloc(pAlloc, sizeof(*pMap), PXALLOC_F_DIRTY);
-    pxHmMapInit(pMap, &pxObject_clone_hmDope, pAlloc, 8);
-    return pMap;
-}
-
 typedef struct
 {
-    pxObjectStruct *pThis; // the object to be cloned
-    pxAlloc *pAlloc; // the allocator to use for the cloning
-    pxHmMap *pMap; // the context map with objects that are already cloned
-} pxObject_clone_create_ctx;
+    pxObjectCloner *pCloner; // the cloner
+    pxObjectStruct *pTarget; // the object to be cloned
+} pxObjectCloner_CreateCtx;
 
-static pxHmEntry *pxObject_clone_create(void *const pctx, pxAlloc *const pAlloc)
+static pxHmEntry *pxObjectCloner_create(void *const pctx, pxAlloc *const pAlloc)
 {
-    pxObject_clone_create_ctx *const pCtx = (pxObject_clone_create_ctx *)pctx;
-    const pxObjectVt *const pObjectVt = pCtx->pThis->pObjectVt;
-
-    // allocate a new instance
-    void *const pOld =
-        ((char *)&pCtx->pThis->pObjectVt) - pObjectVt->objectOffset;
-    void *const pNew =
-        PXALLOC_alloc(pCtx->pAlloc, pObjectVt->size, PXALLOC_F_DIRTY);
-
-    // raw copy: copies vtable pointers and scalars; everything else has to
-    // be adjusted (by overwriting it) below
-    memcpy(pNew, pOld, pObjectVt->size);
-
-    // adjust object state
-    pxObjectStruct *const pNewThis =
-        (pxObjectStruct *)(((char *)pNew) + pObjectVt->objectOffset);
-
-    if (pCtx->pThis->pMixinList)
-    {
-        // clone my mixins in the order in which they appear
-        // since we always start with the owner, we know none of these will be
-        // in the map
-        // TODO clone my own mixins
-        pxExit("pxObject_clone: mixin cloning unimplemented\n");
-    }
-
-    // clone any other objects referenced by pointer members
-    if (pObjectVt->nMember)
-    {
-        // TODO clone my members
-        pxExit("pxObject_clone: member pointer copy unimplemented\n");
-    }
+    pxObjectCloner_CreateCtx *const pCtx = (pxObjectCloner_CreateCtx *)pctx;
 
     // set up and return the new hash map entry
-    pxObject_clone_Item *const pItem =
-        PXALLOC_alloc(pAlloc, sizeof(pxObject_clone_Item), PXALLOC_F_DIRTY);
-    pItem->pNew = (pxObject *)&pNewThis->pObjectVt;
-    pItem->pOld = (pxObject *)&pCtx->pThis->pObjectVt;
+    pxObjectCloner_Item *const pItem =
+        PXALLOC_alloc(pAlloc, sizeof(pxObjectCloner_Item), PXALLOC_F_DIRTY);
+    pItem->pOldO = pCtx->pTarget;
+
+    // clone the object
+    pItem->pNewO = pxObjectCloner_cloneThis(pCtx->pCloner, pItem->pOldO);
+
+    // if necessary, add it to the list of things to attend to
+    if (!pItem->pOldO->pMixinList && !pItem->pOldO->pObjectVt->nMember)
+        pItem->pNextItem = NULL;
+    else
+    {
+        pItem->pNextItem = pCtx->pCloner->pItemList;
+        pCtx->pCloner->pItemList = pItem;
+    }
+
     return &pItem->hmEntry;
 }
 
-pxInterface *pxObject_clone(pxObject *const pI, pxAlloc *pAlloc,
-                            const char *const pIName, pxHmMap *const pMap)
+static pxObjectStruct *pxObjectCloner_cloneGraph(
+    pxObjectCloner *pCloner, pxObjectStruct *pO)
 {
-    pxObject_clone_create_ctx ctx; // local variables for closure
-    ctx.pThis = PXINTERFACE_STRUCT(pI, pxObjectStruct, pObjectVt);
-
     // if this isn't the root object, start with that instead
-    if (ctx.pThis->pOwner)
-    {
-        return PXOBJECT_clone(
-            (pxObject *)&ctx.pThis->pOwner->pObjectVt, pAlloc, pIName, pMap);
-    }
+    if (pO->pOwner)
+        return pxObjectCloner_cloneGraph(pCloner, pO->pOwner);
 
-    // find the map to use for the lookup; finish other closure setup
-    ctx.pMap = pxObject_clone_mapInit(pMap, NULL);
-    ctx.pAlloc = pAlloc;
+    pxObjectCloner_CreateCtx ctx; // local variables for closure
+    ctx.pCloner = pCloner;
+    ctx.pTarget = pO;
 
     // find the cloned object in the context hash map, creating it if necessary
     pxHmEntry *const pEntry =
-        pxHmMapFind(ctx.pMap, &pI, pxObject_clone_create, &ctx);
-    pxObject_clone_Item *const pItem =
-        PXHM_STRUCT(pEntry, pxObject_clone_Item, hmEntry);
+        pxHmMapFind(pCloner->pMap, &pO, pxObjectCloner_create, &ctx);
+    pxObjectCloner_Item *const pItem =
+        PXHM_STRUCT(pEntry, pxObjectCloner_Item, hmEntry);
 
-    // if we created the local map, clean it up
-    if (!pMap)
+    return pItem->pNewO;
+}
+
+void pxObjectClonerInitSingle(
+    pxObjectCloner *const pCloner, pxAlloc *const pAlloc)
+{
+    pCloner->clone = pxObjectCloner_cloneSingle;
+    pCloner->pAlloc = pAlloc;
+}
+
+void pxObjectClonerInitGraph(
+    pxObjectCloner *const pCloner, pxAlloc *const pAlloc)
+{
+    pCloner->clone = pxObjectCloner_cloneGraph;
+    pCloner->pAlloc = pAlloc;
+
+    // create the map
+    pxAlloc *const pAllocS = pxAllocSystemGet();
+    pxAlloc *const pAllocE = pxAllocExtentCreate(pAllocS, 1024, NULL);
+    pCloner->pMap = (pxHmMap *)
+        PXALLOC_alloc(pAllocE, sizeof(pxHmMap), PXALLOC_F_DIRTY);
+    pxHmMapInit(pCloner->pMap, &pxObjectCloner_hmDope, pAllocE, 8);
+
+    // initialize the list
+    pCloner->pItemList = NULL;
+}
+
+static void pxObjectClonerProcess(pxObjectCloner *const pCloner)
+{
+    // go hrough all the items that need the 2nd phase of processing
+    pxObjectCloner_Item *pItem;
+    while((pItem = pCloner->pItemList))
     {
-        pxAlloc *const pMapAlloc = pxHmMapGetAlloc(ctx.pMap);
+        // remove this item from the list of things to be processed
+        pCloner->pItemList = pItem->pNextItem;
+        pItem->pNextItem = NULL;
+
+        // we need to clone mixins first so that any members which point
+        // to an interface on a mixin need to be able to find that
+        if (pItem->pOldO->pMixinList)
+        {
+            // clone my mixins in the order in which they appear
+            // Since we always start with the owner, we know none of these will
+            // be in the map. We assume the number of mixins is relatively
+            // small so that we don't have to resort to pointer reversal to
+            // avoid stack issues.
+            pxObjectStruct **ppNewMixin = &pItem->pNewO->pMixinList;
+            for(pxObjectStruct *pMixin = pItem->pOldO->pMixinList; pMixin;
+                pMixin = pMixin->pNextMixin)
+            {
+                pxObjectStruct *const pNewMixin =
+                    pxObjectCloner_cloneGraph(pCloner, pMixin);
+
+                // add this to the new owner's list of mixins
+                *ppNewMixin = pNewMixin;
+                ppNewMixin = &pNewMixin->pNextMixin;
+            }
+        
+            // terminate the new mixin list
+            *ppNewMixin = NULL;
+        }
+
+        const pxObjectVt *const pObjectVt = pItem->pNewO->pObjectVt;
+        if (pObjectVt->nMember)
+        {
+            // clone any other objects referenced by pointer members
+            const char *const pOldO =
+                ((char *)pItem->pOldO) + pObjectVt->objectOffset;
+            const char *const pNewO =
+                ((char *)pItem->pNewO) + pObjectVt->objectOffset;
+            size_t n = pObjectVt->nMember;
+            for(const pxObjectMember *pMember = pObjectVt->pMember; n;
+                ++pMember, --n)
+            {
+                // get the old interface pointer from the original object
+                pxInterface *const pIOld =
+                    *(pxInterface **)(pOldO + pMember->memberOffset);
+
+                // get the pxObject interface on the old interface
+                pxObject *const pOOld =
+                    (pxObject *)(((char *)pIOld) +
+                                 pIOld->pVt->interfaceVt.pxObjectOffset);
+
+                pxObjectStruct *const pSOld =
+                    PXINTERFACE_STRUCT(pOOld, pxObjectStruct, pObjectVt);
+
+                // clone (or find) the object
+                pxObjectStruct *const pSNew =
+                    pxObjectCloner_cloneGraph(pCloner, pSOld);
+
+                // obtain the proper interface
+                pxInterface *const pINew =
+                    (*pSNew->pObjectVt->interfaceVt.getInterface)(
+                        (pxInterface *)&pSNew->pObjectVt, pMember->pName);
+
+                // put the interface pointer in the proper place
+                pxInterface **const ppINew =
+                    (pxInterface **)(pNewO + pMember->memberOffset);
+                *ppINew = pINew;
+            }
+        }
+    }
+}
+
+void pxObjectClonerCleanup(pxObjectCloner *const pCloner)
+{
+    if (pCloner->clone == pxObjectCloner_cloneGraph)
+    {
+        // do any final post-processing necessary
+        pxObjectClonerProcess(pCloner);
+    
+        pxAlloc *const pMapAlloc = pxHmMapGetAlloc(pCloner->pMap);
         pxObject *const pAllocO = PXINTERFACE_getInterface(pMapAlloc, pxObject);
         PXOBJECT_destroy(pAllocO);
     }
-
-    // return the requested interface on the new object
-    return pItem->pNew->pVt->interfaceVt.getInterface(
-        (pxInterface *)&pItem->pNew->pVt->interfaceVt, pIName);
 }
 
-pxInterface *pxObject_cloneForbidden(pxObject *pI, pxAlloc *pAlloc,
-                                     const char *const pIName, pxHmMap *pMap)
+pxInterface *pxObject_clone(
+    pxObject *const pI, const char *const pIName, pxObjectCloner *pCloner)
+{
+    pxObjectStruct *pThis = PXINTERFACE_STRUCT(pI, pxObjectStruct, pObjectVt);
+    pxObjectStruct *const pO = (*pCloner->clone)(pCloner, pThis);
+    return pO->pObjectVt->interfaceVt.getInterface(
+        (pxInterface *)&pO->pObjectVt->interfaceVt, pIName);
+}
+
+pxInterface *pxObject_cloneForbidden(
+    pxObject *pI, const char *const pIName, pxObjectCloner *pCloner)
 {
     pxExit("pxObject_clone: attempt to clone uncloneable object\n");
 
