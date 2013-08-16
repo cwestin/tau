@@ -64,6 +64,10 @@ typedef struct pxFooVt
 #define PXFOO_increment(pI, i) \
     ((*(pI)->pVt->increment)(pI, i))
 
+    struct pxFoo *(*setFoo)(struct pxFoo *pFoo, struct pxFoo *pOtherFoo);
+#define PXFOO_setFoo(pI, pOtherFoo) \
+    ((*(pI)->pVt->increment)(pI, pOtherFoo))
+
 } pxFooVt;
 
 typedef struct pxFoo
@@ -77,9 +81,11 @@ static const char pxFooName[] = "pxFooName";
 // this is how you build an object that implements that interface
 typedef struct MyObject
 {
+    int i;
+    pxFoo *pOther;
+
     const pxFooVt *pFooVt;
     pxObjectStruct objectStruct;
-    int i;
 } MyObject;
 
 static int MyObject_get(pxFoo *pFoo)
@@ -96,6 +102,15 @@ static void MyObject_increment(pxFoo *pFoo, int i)
     pThis->i += i;
 }
 
+static pxFoo *MyObject_setFoo(pxFoo *pFoo, pxFoo *pOtherFoo)
+{
+    MyObject *const pThis = PXINTERFACE_STRUCT(pFoo, MyObject, pFooVt);
+
+    pxFoo *const pPreviousFoo = pThis->pOther;
+    pThis->pOther = pOtherFoo;
+    return pPreviousFoo;
+}
+
 static const pxFooVt pxFoo_FooVt =
 {
     {
@@ -104,6 +119,7 @@ static const pxFooVt pxFoo_FooVt =
     },
     MyObject_get,
     MyObject_increment,
+    MyObject_setFoo,
 };
 
 
@@ -125,7 +141,7 @@ static const pxObjectVt pxFooObjectVt =
     pxFoo_interfaces,
     sizeof(MyObject), 
     offsetof(MyObject, objectStruct),
-    0,
+    0, // TODO add members (pOther)
     NULL,
 };
 
@@ -137,6 +153,7 @@ static void testpxObject()
     pM->pFooVt = &pxFoo_FooVt;
     pxObjectStructInit(&pM->objectStruct, &pxFooObjectVt, NULL);
     pM->i = 0;
+    pM->pOther = NULL;
 
     // try calling a method
     pxFoo *const pFoo = (pxFoo *)&pM->pFooVt;
@@ -171,6 +188,7 @@ static pxFoo *MyObjectCreate(pxAlloc *const pAlloc, pxInterface *const pOwner)
     pM->pFooVt = &pxFoo_FooVt;
     pxObjectStructInit(&pM->objectStruct, &pxFooObjectVt, pOwner);
     pM->i = 0;
+    pM->pOther = NULL;
 
     return (pxFoo *)&pM->pFooVt;
 }

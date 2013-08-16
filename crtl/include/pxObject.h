@@ -64,8 +64,9 @@ typedef struct
  */
 typedef struct
 {
-    const char *const pName; // pointer to the official interface name symbol
+    // TODO add flags
     ptrdiff_t memberOffset; // offset from pxObject interface to this member
+    const char *const pName; // pointer to the official interface name symbol
 } pxObjectMember;
 
 struct pxAlloc;

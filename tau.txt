@@ -3,7 +3,13 @@
 - set up for doxygen (early experiments not great; considering)
 
 (*) implement pxObject::clone()
-- various TODOs
+- test cloning with mixins
+- test cloning with members
+  - need to finish pxObjectMember
+    - add a flag to indicate non-interface members
+
+(*) implement pxString
+- can use this for pxHashMapLocal keys
 
 (*) Finish pxHashMapLocal
 - should I really finish this? Or should this be implemented in tau space now
