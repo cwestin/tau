@@ -118,8 +118,8 @@ typedef struct pxObjectVt
         struct pxObject *pI, const char *const pIName,
         struct pxObjectCloner *pCloner);
 
-#define PXOBJECT_clone(pI, pAlloc, pIName, pMap) \
-    ((*(pI)->pVt->clone)(pI, pAlloc, pIName, pMap))
+#define PXOBJECT_clone(pI, pIName, pCloner) \
+    ((*(pI)->pVt->clone)(pI, pIName, pCloner))
 
     // used by pxObject_getInterface()
     size_t nInterface; // size of the interface table as a number of entries

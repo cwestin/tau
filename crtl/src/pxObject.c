@@ -367,7 +367,7 @@ pxInterface *pxObject_clone(
     pxObjectStruct *pThis = PXINTERFACE_STRUCT(pI, pxObjectStruct, pObjectVt);
     pxObjectStruct *const pO = (*pCloner->clone)(pCloner, pThis);
     return pO->pObjectVt->interfaceVt.getInterface(
-        (pxInterface *)&pO->pObjectVt->interfaceVt, pIName);
+        (pxInterface *)&pO->pObjectVt, pIName);
 }
 
 pxInterface *pxObject_cloneForbidden(

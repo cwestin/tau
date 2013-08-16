@@ -120,11 +120,11 @@ static const pxObjectVt pxFoo_ObjectVt =
         pxObject_getInterface,
     },
     pxObject_destroy,
-    pxObject_cloneForbidden, // TODO
+    pxObject_clone,
     sizeof(pxFoo_interfaces)/sizeof(pxFoo_interfaces[0]),
     pxFoo_interfaces,
     sizeof(MyObject), 
-    offsetof(MyObject, objectStruct.pObjectVt),
+    offsetof(MyObject, objectStruct),
     0,
     NULL,
 };
@@ -178,18 +178,29 @@ static pxFoo *MyObjectCreate(pxAlloc *const pAlloc, pxInterface *const pOwner)
 static void testpxObjectCloning()
 {
     pxAlloc *const pAllocS = pxAllocSystemGet();
-    pxAlloc *pAllocD = pxAllocDebugCreate(pAllocS, NULL);
+    pxAlloc *const pAllocD1 = pxAllocDebugCreate(pAllocS, NULL);
 
-    pxFoo *pFoo1 = MyObjectCreate(pAllocD, NULL);
+    pxFoo *pFoo1 = MyObjectCreate(pAllocD1, NULL);
     PXFOO_increment(pFoo1, 17);
     MyObject *const pThis1 = PXINTERFACE_STRUCT(pFoo1, MyObject, pFooVt);
     if (pThis1->i != 17)
         fprintf(stderr, "testpxObjectCloning: increment failed\n");
 
-    pxObject *pAllocO = PXINTERFACE_getInterface(pAllocD, pxObject);
+    // clone the object
+    pxAlloc *const pAllocD2 = pxAllocDebugCreate(pAllocS, NULL);
+    pxObject *pFoo1O = PXINTERFACE_getInterface(pFoo1, pxObject);
+    pxObjectCloner cloner;
+    pxObjectClonerInitSingle(&cloner, pAllocD2);
+    pxFoo *const pFoo2 = (pxFoo *)PXOBJECT_clone(pFoo1O, pxFooName, &cloner);
+    pxObjectClonerCleanup(&cloner);
+
+    pxObject *pAllocO = PXINTERFACE_getInterface(pAllocD1, pxObject);
     PXOBJECT_destroy(pAllocO);
     if (pThis1->i == 17)
         fprintf(stderr, "testpxObjectCloning: allocator did not shred\n");
+
+    if (PXFOO_get(pFoo2) != 17)
+        fprintf(stderr, "testpxObjectCloning: clone value incorrect\n");
 }
 
 int main(void)
