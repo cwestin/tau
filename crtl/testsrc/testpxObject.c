@@ -111,7 +111,7 @@ static pxFoo *MyObject_setFoo(pxFoo *pFoo, pxFoo *pOtherFoo)
     return pPreviousFoo;
 }
 
-static const pxFooVt pxFoo_FooVt =
+static const pxFooVt MyObjectFooVt =
 {
     {
         offsetof(MyObject, objectStruct.pObjectVt) - offsetof(MyObject, pFooVt),
@@ -123,13 +123,13 @@ static const pxFooVt pxFoo_FooVt =
 };
 
 
-static const pxObjectInterface pxFoo_interfaces[] =
+static const pxObjectInterface MyObject_interfaces[] =
 {
     {pxFooName, offsetof(MyObject, objectStruct.pObjectVt) - offsetof(MyObject, pFooVt)},
     {pxObjectName, 0},
 };
 
-static const pxObjectVt pxFooObjectVt =
+static const pxObjectVt MyObjectObjectVt =
 {
     {
         0,
@@ -137,8 +137,8 @@ static const pxObjectVt pxFooObjectVt =
     },
     pxObject_destroy,
     pxObject_clone,
-    sizeof(pxFoo_interfaces)/sizeof(pxFoo_interfaces[0]),
-    pxFoo_interfaces,
+    sizeof(MyObject_interfaces)/sizeof(MyObject_interfaces[0]),
+    MyObject_interfaces,
     sizeof(MyObject), 
     offsetof(MyObject, objectStruct),
     0, // TODO add members (pOther)
@@ -150,8 +150,8 @@ static void testpxObject()
     // initialize the object
     MyObject *const pM = (MyObject *)malloc(sizeof(MyObject));
     memset(pM, 0, sizeof(MyObject));
-    pM->pFooVt = &pxFoo_FooVt;
-    pxObjectStructInit(&pM->objectStruct, &pxFooObjectVt, NULL);
+    pM->pFooVt = &MyObjectFooVt;
+    pxObjectStructInit(&pM->objectStruct, &MyObjectObjectVt, NULL);
     pM->i = 0;
     pM->pOther = NULL;
 
@@ -185,8 +185,8 @@ static pxFoo *MyObjectCreate(pxAlloc *const pAlloc, pxInterface *const pOwner)
 {
     MyObject *const pM =
         (MyObject *)PXALLOC_alloc(pAlloc, sizeof(MyObject), PXALLOC_F_DIRTY);
-    pM->pFooVt = &pxFoo_FooVt;
-    pxObjectStructInit(&pM->objectStruct, &pxFooObjectVt, pOwner);
+    pM->pFooVt = &MyObjectFooVt;
+    pxObjectStructInit(&pM->objectStruct, &MyObjectObjectVt, pOwner);
     pM->i = 0;
     pM->pOther = NULL;
 
