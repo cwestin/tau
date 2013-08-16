@@ -24,6 +24,11 @@
 #define PX_STDIO_H
 #endif
 
+#ifndef PX_STRING_H
+#include <string.h>
+#define PX_STRING_H
+#endif
+
 #ifndef PXALIGN_H
 #include "pxAlign.h"
 #endif
@@ -69,9 +74,10 @@ typedef struct
     pxDllLink link; // link on list of allocated pieces
     int sequence; // immutable once set
     pxAllocDebug_s *pOwner; // owning allocator
+    size_t size;
 
     pxAlignAll data; // user data begins here
-} pxAllocDebug_item;
+} pxAllocDebug_Item;
 
 
 static void *pxAllocDebug_alloc(pxAlloc *pAlloc, size_t size, int flag)
@@ -79,19 +85,26 @@ static void *pxAllocDebug_alloc(pxAlloc *pAlloc, size_t size, int flag)
     pxAllocDebug_s *const pThis =
         PXINTERFACE_STRUCT(pAlloc, pxAllocDebug_s, pAllocVt);
 
-    pxAllocDebug_item *const pItem = (pxAllocDebug_item *)
+    pxAllocDebug_Item *const pItem = (pxAllocDebug_Item *)
         PXALLOC_alloc(pThis->pAlloc,
-                      offsetof(pxAllocDebug_item, data) + size, flag);
+                      offsetof(pxAllocDebug_Item, data) + size, flag);
     if (!pItem)
         return NULL;
 
     pxDllInit(&pItem->link);
     pItem->sequence = pThis->sequence++;
     pItem->pOwner = pThis;
+    pItem->size = size;
 
     pxDllAddLast(&pThis->list, &pItem->link);
 
     return &pItem->data;
+}
+
+static inline void pxAllocDebug_shred(pxAllocDebug_Item *const pItem)
+{
+    // wipe out the content
+    memset(pItem, 0xca, offsetof(pxAllocDebug_Item, data) + pItem->size);
 }
 
 static void pxAllocDebug_free(pxFree *pFree, void *p)
@@ -101,14 +114,16 @@ static void pxAllocDebug_free(pxFree *pFree, void *p)
 
     pxAllocDebug_s *const pThis =
         PXINTERFACE_STRUCT(pFree, pxAllocDebug_s, pFreeVt);
-    pxAllocDebug_item *const pItem = (pxAllocDebug_item *)
-        (((char *)p) - offsetof(pxAllocDebug_item, data));
+    pxAllocDebug_Item *const pItem = (pxAllocDebug_Item *)
+        (((char *)p) - offsetof(pxAllocDebug_Item, data));
 
     if (pItem->pOwner != pThis)
         pxExit("pxAllocDebug_free: Attempt to free non-member\n");
 
     // remove it from the list
     pxDllRemove(&pItem->link);
+
+    pxAllocDebug_shred(pItem);
 
     // if the allocator supports freeing, use it
     pxFree *const pAllocFree = PXINTERFACE_getInterface(pThis->pAlloc, pxFree);
@@ -151,9 +166,10 @@ static void pxAllocDebug_destroy(pxObject *pObject)
         pxDllLink *pLink;
         while((pLink = pxDllGetFirst(&pThis->list)))
         {
-            pxAllocDebug_item *const pItem =
-                PXDLL_STRUCT(pLink, pxAllocDebug_item, link);
+            pxAllocDebug_Item *const pItem =
+                PXDLL_STRUCT(pLink, pxAllocDebug_Item, link);
             pxDllRemove(&pItem->link);
+            pxAllocDebug_shred(pItem);
             PXFREE_free(pFree, pItem);
         }
     }

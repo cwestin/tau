@@ -25,6 +25,23 @@
 #define PX_STDLIB_H
 #endif
 
+#ifndef PX_STRING_H
+#include <string.h>
+#define PX_STRING_H
+#endif
+
+#ifndef PXALLOC_H
+#include "pxAlloc.h"
+#endif
+
+#ifndef PXALLOCSYSTEM_H
+#include "pxAllocSystem.h"
+#endif
+
+#ifndef PXALLOCDEBUG_H
+#include "pxAllocDebug.h"
+#endif
+
 #ifndef PXINTERFACE_H
 #include "pxInterface.h"
 #endif
@@ -39,7 +56,14 @@ struct pxFoo;
 typedef struct pxFooVt
 {
     pxInterfaceVt interfaceVt;
-    void (*f)(struct pxFoo *pFoo, int i);
+    int (*get)(struct pxFoo *pFoo);
+#define PXFOO_get(pI) \
+    ((*(pI)->pVt->get)(pI))
+
+    void (*increment)(struct pxFoo *pFoo, int i);
+#define PXFOO_increment(pI, i) \
+    ((*(pI)->pVt->increment)(pI, i))
+
 } pxFooVt;
 
 typedef struct pxFoo
@@ -48,9 +72,6 @@ typedef struct pxFoo
 } pxFoo;
 
 static const char pxFooName[] = "pxFooName";
-
-#define PXFOO_f(pI, i) \
-    ((*(pI)->pVt->f)(pI, i))
 
 
 // this is how you build an object that implements that interface
@@ -61,7 +82,14 @@ typedef struct MyObject
     int i;
 } MyObject;
 
-static void MyObject_f(pxFoo *pFoo, int i)
+static int MyObject_get(pxFoo *pFoo)
+{
+    MyObject *const pThis = PXINTERFACE_STRUCT(pFoo, MyObject, pFooVt);
+
+    return pThis->i;
+}
+
+static void MyObject_increment(pxFoo *pFoo, int i)
 {
     MyObject *const pThis = PXINTERFACE_STRUCT(pFoo, MyObject, pFooVt);
 
@@ -74,7 +102,8 @@ static const pxFooVt pxFoo_FooVt =
         offsetof(MyObject, objectStruct.pObjectVt) - offsetof(MyObject, pFooVt),
         pxObject_getInterface,
     },
-    MyObject_f,
+    MyObject_get,
+    MyObject_increment,
 };
 
 
@@ -104,15 +133,18 @@ static void testpxObject()
 {
     // initialize the object
     MyObject *const pM = (MyObject *)malloc(sizeof(MyObject));
+    memset(pM, 0, sizeof(MyObject));
     pM->pFooVt = &pxFoo_FooVt;
     pxObjectStructInit(&pM->objectStruct, &pxFoo_ObjectVt, NULL);
     pM->i = 0;
 
     // try calling a method
     pxFoo *const pFoo = (pxFoo *)&pM->pFooVt;
-    PXFOO_f(pFoo, 1);
+    PXFOO_increment(pFoo, 1);
     if (pM->i != 1)
         fprintf(stderr, "foo interface increment failed\n");
+    if (PXFOO_get(pFoo) != 1)
+        fprintf(stderr, "foo interface get failed\n");
 
     // check on the object interface implementation
     pxObject *const pObject = PXINTERFACE_getInterface(pFoo, pxObject);
@@ -132,8 +164,40 @@ static void testpxObject()
     free(pM);
 }
 
+static pxFoo *MyObjectCreate(pxAlloc *const pAlloc, pxInterface *const pOwner)
+{
+    MyObject *const pM =
+        (MyObject *)PXALLOC_alloc(pAlloc, sizeof(MyObject), PXALLOC_F_DIRTY);
+    pM->pFooVt = &pxFoo_FooVt;
+    pxObjectStructInit(&pM->objectStruct, &pxFoo_ObjectVt, pOwner);
+    pM->i = 0;
+
+    return (pxFoo *)&pM->pFooVt;
+}
+
+static void testpxObjectCloning()
+{
+    pxAlloc *const pAllocS = pxAllocSystemGet();
+    pxAlloc *pAllocD = pxAllocDebugCreate(pAllocS, NULL);
+
+    pxFoo *pFoo1 = MyObjectCreate(pAllocD, NULL);
+    PXFOO_increment(pFoo1, 17);
+    MyObject *const pThis1 = PXINTERFACE_STRUCT(pFoo1, MyObject, pFooVt);
+    if (pThis1->i != 17)
+        fprintf(stderr, "testpxObjectCloning: increment failed\n");
+
+    pxObject *pAllocO = PXINTERFACE_getInterface(pAllocD, pxObject);
+    PXOBJECT_destroy(pAllocO);
+    if (pThis1->i == 17)
+        fprintf(stderr, "testpxObjectCloning: allocator did not shred\n");
+}
+
 int main(void)
 {
     testpxObject();
+
+    pxAllocSystemInit();
+    testpxObjectCloning();
+
     return 0;
 }
