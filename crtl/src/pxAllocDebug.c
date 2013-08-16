@@ -229,7 +229,7 @@ static const pxObjectVt pxAllocDebugObjectVt =
     pxAllocDebug_interfaces,
 
     sizeof(pxAllocDebug_s),
-    offsetof(pxAllocDebug_s, objectStruct.pObjectVt),
+    offsetof(pxAllocDebug_s, objectStruct),
     0,
     NULL,
 };

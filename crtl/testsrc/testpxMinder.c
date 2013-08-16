@@ -71,7 +71,7 @@ static const pxObjectInterface MyDestroyable_interfaces[] =
     {pxObjectName, 0},
 };
 
-static const pxObjectVt MyDestroyable_ObjectVt =
+static const pxObjectVt MyDestroyableObjectVt =
 {
     {
         0,
@@ -82,14 +82,14 @@ static const pxObjectVt MyDestroyable_ObjectVt =
     sizeof(MyDestroyable_interfaces)/sizeof(MyDestroyable_interfaces[0]),
     MyDestroyable_interfaces,
     sizeof(MyDestroyable),
-    offsetof(MyDestroyable, objectStruct.pObjectVt),
+    offsetof(MyDestroyable, objectStruct),
     0,
     NULL,
 };
 
 static void MyDestroyableInit(MyDestroyable *pMD, bool *pBool)
 {
-    pxObjectStructInit(&pMD->objectStruct, &MyDestroyable_ObjectVt, NULL);
+    pxObjectStructInit(&pMD->objectStruct, &MyDestroyableObjectVt, NULL);
     pMD->pIsDestroyed = pBool;
     *pBool = false;
 }

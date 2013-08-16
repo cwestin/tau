@@ -113,7 +113,7 @@ static const pxObjectInterface pxFoo_interfaces[] =
     {pxObjectName, 0},
 };
 
-static const pxObjectVt pxFoo_ObjectVt =
+static const pxObjectVt pxFooObjectVt =
 {
     {
         0,
@@ -135,7 +135,7 @@ static void testpxObject()
     MyObject *const pM = (MyObject *)malloc(sizeof(MyObject));
     memset(pM, 0, sizeof(MyObject));
     pM->pFooVt = &pxFoo_FooVt;
-    pxObjectStructInit(&pM->objectStruct, &pxFoo_ObjectVt, NULL);
+    pxObjectStructInit(&pM->objectStruct, &pxFooObjectVt, NULL);
     pM->i = 0;
 
     // try calling a method
@@ -169,7 +169,7 @@ static pxFoo *MyObjectCreate(pxAlloc *const pAlloc, pxInterface *const pOwner)
     MyObject *const pM =
         (MyObject *)PXALLOC_alloc(pAlloc, sizeof(MyObject), PXALLOC_F_DIRTY);
     pM->pFooVt = &pxFoo_FooVt;
-    pxObjectStructInit(&pM->objectStruct, &pxFoo_ObjectVt, pOwner);
+    pxObjectStructInit(&pM->objectStruct, &pxFooObjectVt, pOwner);
     pM->i = 0;
 
     return (pxFoo *)&pM->pFooVt;

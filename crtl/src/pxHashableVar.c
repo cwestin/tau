@@ -138,7 +138,7 @@ static const pxObjectVt pxHashableVarObjectVt =
     pxHashableVar_interfaces,
 
     sizeof(pxHashableVar_s),
-    offsetof(pxHashableVar_s, objectStruct.pObjectVt),
+    offsetof(pxHashableVar_s, objectStruct),
     0,
     NULL,
 };

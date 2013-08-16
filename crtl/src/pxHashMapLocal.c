@@ -208,7 +208,7 @@ static const pxObjectVt pxHashMapLocalObjectVt =
     pxHashMapLocal_interfaces,
 
     sizeof(pxHashMapLocal_s),
-    offsetof(pxHashMapLocal_s, objectStruct.pObjectVt),
+    offsetof(pxHashMapLocal_s, objectStruct),
     0,
     NULL,
 };

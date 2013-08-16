@@ -158,7 +158,7 @@ static const pxObjectInterface pxAllocExtent_interfaces[] =
     {pxObjectName, 0},
 };
 
-static const pxObjectVt pxAllocExtent_ObjectVt =
+static const pxObjectVt pxAllocExtentObjectVt =
 {
     {
         0,
@@ -171,7 +171,7 @@ static const pxObjectVt pxAllocExtent_ObjectVt =
     pxAllocExtent_interfaces,
 
     sizeof(pxAllocExtent_s),
-    offsetof(pxAllocExtent_s, objectStruct.pObjectVt),
+    offsetof(pxAllocExtent_s, objectStruct),
     0,
     NULL,
 };
@@ -188,7 +188,7 @@ pxAlloc *pxAllocExtentCreate(
                       offsetof(pxAllocExtent_s, firstExtent.data) + initSize,
                       PXALLOC_F_DIRTY);
     pAE->pAllocVt = &pxAllocExtentAllocVt;
-    pxObjectStructInit(&pAE->objectStruct, &pxAllocExtent_ObjectVt, pOwner);
+    pxObjectStructInit(&pAE->objectStruct, &pxAllocExtentObjectVt, pOwner);
     pAE->pAlloc = pAlloc;
     pxAllocExtent_extentInit(&pAE->firstExtent, initSize);
     pAE->pExtents = &pAE->firstExtent;

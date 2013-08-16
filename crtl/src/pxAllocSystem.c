@@ -124,7 +124,7 @@ static const pxObjectVt pxAllocSystemObjectVt =
     pxAllocSystem_interfaces,
 
     sizeof(pxAllocSystem_s),
-    offsetof(pxAllocSystem_s, objectStruct.pObjectVt),
+    offsetof(pxAllocSystem_s, objectStruct),
     0,
     NULL,
 };

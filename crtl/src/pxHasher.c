@@ -61,7 +61,7 @@ static const pxObjectVt pxHasherObjectVt =
     pxHasher_interfaces,
 
     sizeof(pxHasher_s),
-    offsetof(pxHasher_s, objectStruct.pObjectVt),
+    offsetof(pxHasher_s, objectStruct),
     0,
     NULL,
 };

@@ -167,7 +167,7 @@ static const pxObjectVt pxAllocReuseObjectVt =
     pxAllocReuse_interfaces,
 
     sizeof(pxAllocReuse_s),
-    offsetof(pxAllocReuse_s, objectStruct.pObjectVt),
+    offsetof(pxAllocReuse_s, objectStruct),
     0,
     NULL,
 };

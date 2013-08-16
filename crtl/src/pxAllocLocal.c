@@ -117,7 +117,7 @@ static const pxObjectVt pxAllocLocalObjectVt =
     pxAllocLocal_interfaces,
 
     sizeof(pxAllocLocal_s),
-    offsetof(pxAllocLocal_s, objectStruct.pObjectVt),
+    offsetof(pxAllocLocal_s, objectStruct),
     0,
     NULL,
 };
