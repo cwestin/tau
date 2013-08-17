@@ -68,6 +68,10 @@ typedef struct pxFooVt
 #define PXFOO_setFoo(pI, pOtherFoo) \
     ((*(pI)->pVt->setFoo)(pI, pOtherFoo))
 
+    struct pxFoo *(*getFoo)(struct pxFoo *pFoo);
+#define PXFOO_getFoo(pI) \
+    ((*(pI)->pVt->getFoo)(pI))
+
 } pxFooVt;
 
 typedef struct pxFoo
@@ -111,6 +115,13 @@ static pxFoo *MyObject_setFoo(pxFoo *pFoo, pxFoo *pOtherFoo)
     return pPreviousFoo;
 }
 
+static pxFoo *MyObject_getFoo(pxFoo *pFoo)
+{
+    MyObject *const pThis = PXINTERFACE_STRUCT(pFoo, MyObject, pFooVt);
+
+    return pThis->pOther;
+}
+
 static const pxFooVt MyObjectFooVt =
 {
     {
@@ -120,6 +131,7 @@ static const pxFooVt MyObjectFooVt =
     MyObject_get,
     MyObject_increment,
     MyObject_setFoo,
+    MyObject_getFoo,
 };
 
 
@@ -223,7 +235,8 @@ static void testpxObjectCloning()
         fprintf(stderr, "testpxObjectCloning: allocator did not shred\n");
 
     if (PXFOO_get(pFoo2) != 17)
-        fprintf(stderr, "testpxObjectCloning: clone value incorrect\n");
+        fprintf(stderr,
+                "testpxObjectCloning: clone value incorrect (%d)\n", __LINE__);
 
     pxFoo *const pFoo3 = MyObjectCreate(pAllocD2, NULL);
     PXFOO_increment(pFoo3, 42);
@@ -240,7 +253,22 @@ static void testpxObjectCloning()
     pxObjectClonerCleanup(&cloner);
 
     // check the state of the latest clones
-    // TODO
+    pAllocO = PXINTERFACE_getInterface(pAllocD2, pxObject);
+    PXOBJECT_destroy(pAllocO);
+    if (PXFOO_get(pFoo5) != 17)
+        fprintf(stderr,
+                "testpxObjectCloning: clone value incorrect (%d)\n", __LINE__);
+    if (PXFOO_getFoo(pFoo5) != pFoo4)
+        fprintf(stderr,
+                "testpxObjectCloning: clone member incorrect (%d)\n", __LINE__);
+    if (PXFOO_get(pFoo4) != 42)
+        fprintf(stderr,
+                "testpxObjectCloning: clone value incorrect (%d)\n", __LINE__);
+    if (PXFOO_getFoo(pFoo4) != pFoo5)
+        fprintf(stderr,
+                "testpxObjectCloning: clone member incorrect (%d)\n", __LINE__);
+        
+    // TODO test cloning with a mixin
     
 }
 
