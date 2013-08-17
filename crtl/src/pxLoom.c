@@ -46,6 +46,78 @@
 const char pxLoomClosureName[] = "pxLoomClosure";
 
 
+const char pxLoomSemaphoreName[] = "pxLoomSemaphore";
+
+typedef struct
+{
+    unsigned n;
+    pxLoom *pLoom;
+
+    const pxLoomSemaphoreVt *pLoomSemaphoreVt;
+    pxObjectStruct objectStruct;
+} pxLoomSemaphore_local;
+
+static void pxLoomSemaphore_local_put(pxLoomSemaphore *pI, unsigned n)
+{
+    pxLoomSemaphore_local *const pThis =
+        PXINTERFACE_STRUCT(pI, pxLoomSemaphore_local, pLoomSemaphoreVt);
+
+    pThis->n += n;
+    // TODO
+}
+
+static void pxLoomSemaphore_local_get(pxLoomSemaphore *pI, unsigned n)
+{
+    pxLoomSemaphore_local *const pThis =
+        PXINTERFACE_STRUCT(pI, pxLoomSemaphore_local, pLoomSemaphoreVt);
+
+    // TODO
+    pThis->n -= n;
+}
+
+static const pxLoomSemaphoreVt pxLoomSemaphore_localLoomSemaphoreVt =
+{
+    {
+        offsetof(pxLoomSemaphore_local, objectStruct.pObjectVt) - offsetof(pxLoomSemaphore_local, pLoomSemaphoreVt),
+        pxObject_getInterface,
+    },
+    pxLoomSemaphore_local_put,
+    pxLoomSemaphore_local_get,
+};
+
+static const pxObjectInterface pxLoomSemaphore_local_interfaces[] =
+{
+    {pxLoomSemaphoreName, offsetof(pxLoomSemaphore_local, objectStruct.pObjectVt) - offsetof(pxLoomSemaphore_local, pLoomSemaphoreVt)},
+    {pxObjectName, 0},
+};
+
+static void pxLoomSemaphore_local_destroy(pxObject *pI)
+{
+/*
+    pxLoomSempahore_local *const pThis =
+        PXINTERFACE_STRUCT(pI, pxLoomSemaphore_local, objectStruct.pObjectVt);
+*/
+
+    pxExit("pxLoomSemaphore_local_destroy: unimplemented\n");
+    pxObject_destroy(pI);
+}
+
+static const pxObjectVt pxLoomSemaphore_localObjectVt =
+{
+    {
+        0,
+        pxObject_getInterface,
+    },
+    pxLoomSemaphore_local_destroy,
+    pxObject_cloneForbidden,
+    sizeof(pxLoomSemaphore_local_interfaces)/sizeof(pxLoomSemaphore_local_interfaces[0]),
+    pxLoomSemaphore_local_interfaces,
+    sizeof(pxLoomSemaphore_local), 
+    offsetof(pxLoomSemaphore_local, objectStruct),
+    0,
+    NULL,
+};
+
 
 const char pxLoomName[] = "pxLoom";
 

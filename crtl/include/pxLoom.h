@@ -42,6 +42,12 @@ struct pxAlloc;
    and features. In order to avoid having to deal with writing a byte-code
    interpreter with green threads, we use the pxLoom class to simulate this
    using C features.
+
+   Ideally, we can test out multi-threaded use by creating a real OS thread
+   for every core, and running a loom on each thread. For this reason,
+   the interfaces to related objects, such as pxLoomSemaphore, are abstract,
+   under the expectation that there will be different implementations depending
+   on whether the target is local or remote.
 */
 
 struct pxLoomClosure;
@@ -74,9 +80,30 @@ extern const char pxLoomClosureName[];
 typedef struct pxLoomFrame
 {
     unsigned lineNumber;
+    struct pxAlloc *pLocalAlloc;
+    struct pxLoomFrame *pPreviousFrame;
 
+    const pxLoomClosureVt *pLoomClosureVt;
     pxObjectStruct objectStruct;
 } pxLoomFrame;
+
+
+
+struct pxLoomSemaphore;
+typedef struct pxLoomSemaphoreVt
+{
+    pxInterfaceVt interfaceVt;
+
+    void (*put)(struct pxLoomSemaphore *pLS, unsigned n);
+    void (*get)(struct pxLoomSemaphore *pLS, unsigned n);
+} pxLoomSemaphoreVt;
+
+typedef struct pxLoomSemaphore
+{
+    const pxLoomSemaphoreVt *const pVt;
+} pxLoomSemaphore;
+
+extern const char pxLoomSemaphoreName[];
 
 
 struct pxLoom;
