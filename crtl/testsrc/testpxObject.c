@@ -66,7 +66,7 @@ typedef struct pxFooVt
 
     struct pxFoo *(*setFoo)(struct pxFoo *pFoo, struct pxFoo *pOtherFoo);
 #define PXFOO_setFoo(pI, pOtherFoo) \
-    ((*(pI)->pVt->increment)(pI, pOtherFoo))
+    ((*(pI)->pVt->setFoo)(pI, pOtherFoo))
 
 } pxFooVt;
 
@@ -203,13 +203,13 @@ static void testpxObjectCloning()
     pxAlloc *const pAllocS = pxAllocSystemGet();
     pxAlloc *const pAllocD1 = pxAllocDebugCreate(pAllocS, NULL);
 
-    pxFoo *pFoo1 = MyObjectCreate(pAllocD1, NULL);
+    pxFoo *const pFoo1 = MyObjectCreate(pAllocD1, NULL);
     PXFOO_increment(pFoo1, 17);
     MyObject *const pThis1 = PXINTERFACE_STRUCT(pFoo1, MyObject, pFooVt);
     if (pThis1->i != 17)
         fprintf(stderr, "testpxObjectCloning: increment failed\n");
 
-    // clone the object
+    // clone the object into a new arena
     pxAlloc *const pAllocD2 = pxAllocDebugCreate(pAllocS, NULL);
     pxObject *pFoo1O = PXINTERFACE_getInterface(pFoo1, pxObject);
     pxObjectCloner cloner;
@@ -224,6 +224,24 @@ static void testpxObjectCloning()
 
     if (PXFOO_get(pFoo2) != 17)
         fprintf(stderr, "testpxObjectCloning: clone value incorrect\n");
+
+    pxFoo *const pFoo3 = MyObjectCreate(pAllocD2, NULL);
+    PXFOO_increment(pFoo3, 42);
+    PXFOO_setFoo(pFoo3, pFoo2);
+    PXFOO_setFoo(pFoo2, pFoo3);
+
+    // clone the two mutually referential objects into another arena
+    pxAlloc *const pAllocD3 = pxAllocDebugCreate(pAllocS, NULL);
+    pxObjectClonerInitSingle(&cloner, pAllocD3);
+    pxObject *const pFoo3O = PXINTERFACE_getInterface(pFoo3, pxObject);
+    pxFoo *const pFoo4 = (pxFoo *)PXOBJECT_clone(pFoo3O, pxFooName, &cloner);
+    pxObject *const pFoo2O = PXINTERFACE_getInterface(pFoo2, pxObject);
+    pxFoo *const pFoo5 = (pxFoo *)PXOBJECT_clone(pFoo2O, pxFooName, &cloner);
+    pxObjectClonerCleanup(&cloner);
+
+    // check the state of the latest clones
+    // TODO
+    
 }
 
 int main(void)

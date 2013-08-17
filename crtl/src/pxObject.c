@@ -211,7 +211,7 @@ typedef struct pxObjectCloner_Item
 static const pxHmDope pxObjectCloner_hmDope =
 {
     /* avgBucket */ 3,
-    /* keyOffset */ offsetof(pxObjectCloner_Item, pOldO),
+    /* keyOffset */ offsetof(pxObjectCloner_Item, pOldO) - offsetof(pxObjectCloner_Item, hmEntry),
     /* hash */ pxHashStructStar,
     /* cmp */ pxCmpStructStar,
 };
@@ -239,7 +239,6 @@ static pxHmEntry *pxObjectCloner_create(void *const pctx, pxAlloc *const pAlloc)
         pItem->pNextItem = NULL;
     else
     {
-        // TODO we can also skip this if all the members are NULL
         pItem->pNextItem = pCtx->pCloner->pItemList;
         pCtx->pCloner->pItemList = pItem;
     }
@@ -331,9 +330,9 @@ static void pxObjectClonerProcess(pxObjectCloner *const pCloner)
         {
             // clone any other objects referenced by pointer members
             const char *const pOldO =
-                ((char *)pItem->pOldO) + pObjectVt->objectOffset;
+                ((char *)pItem->pOldO) - pObjectVt->objectOffset;
             const char *const pNewO =
-                ((char *)pItem->pNewO) + pObjectVt->objectOffset;
+                ((char *)pItem->pNewO) - pObjectVt->objectOffset;
             size_t n = pObjectVt->nMember;
             for(const pxObjectMember *pMember = pObjectVt->pMember; n;
                 ++pMember, --n)
