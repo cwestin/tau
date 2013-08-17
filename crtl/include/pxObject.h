@@ -284,4 +284,11 @@ void pxObjectStructInit(
     pxObjectStruct *pObjectStruct, const pxObjectVt *pVt,
     pxInterface *pOwner);
 
+/**
+   Dump the object for debugging purposes.
+
+   @param pI a pointer to any interface on the object
+ */
+void pxObject_dump(pxInterface *pI, const char *pLabel);
+
 #endif // PXOBJECT_H

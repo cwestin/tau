@@ -56,6 +56,7 @@ struct pxFoo;
 typedef struct pxFooVt
 {
     pxInterfaceVt interfaceVt;
+
     int (*get)(struct pxFoo *pFoo);
 #define PXFOO_get(pI) \
     ((*(pI)->pVt->get)(pI))
@@ -71,7 +72,6 @@ typedef struct pxFooVt
     struct pxFoo *(*getFoo)(struct pxFoo *pFoo);
 #define PXFOO_getFoo(pI) \
     ((*(pI)->pVt->getFoo)(pI))
-
 } pxFooVt;
 
 typedef struct pxFoo
@@ -79,7 +79,7 @@ typedef struct pxFoo
     const pxFooVt *const pVt;
 } pxFoo;
 
-static const char pxFooName[] = "pxFooName";
+static const char pxFooName[] = "pxFoo";
 
 
 // this is how you build an object that implements that interface
@@ -210,6 +210,99 @@ static pxFoo *MyObjectCreate(pxAlloc *const pAlloc, pxInterface *const pOwner)
     return (pxFoo *)&pM->pFooVt;
 }
 
+
+struct pxBar;
+typedef struct pxBarVt
+{
+    pxInterfaceVt interfaceVt;
+
+    int (*get)(struct pxBar *pBar);
+#define PXBAR_get(pI) \
+    ((*(pI)->pVt->get)(pI))
+
+    int (*set)(struct pxBar *pBar, int i);
+#define PXBAR_set(pI, i) \
+    ((*(pI)->pVt->set)(pI, i))
+} pxBarVt;
+
+typedef struct pxBar
+{
+    const pxBarVt *const pVt;
+} pxBar;
+
+static const char pxBarName[] = "pxBar";
+
+
+typedef struct YourObject
+{
+    int i;
+
+    const pxBarVt *pBarVt;
+    pxObjectStruct objectStruct;
+} YourObject;
+
+
+static int YourObject_get(pxBar *pBar)
+{
+    YourObject *const pThis = PXINTERFACE_STRUCT(pBar, YourObject, pBarVt);
+
+    return pThis->i;
+}
+
+static int YourObject_set(pxBar *pBar, int i)
+{
+    YourObject *const pThis = PXINTERFACE_STRUCT(pBar, YourObject, pBarVt);
+
+    const int oldi = pThis->i;
+    pThis->i = i;
+    return oldi;
+}
+
+static const pxBarVt YourObjectBarVt =
+{
+    {
+        offsetof(YourObject, objectStruct.pObjectVt) - offsetof(YourObject, pBarVt),
+        pxObject_getInterface,
+    },
+    YourObject_get,
+    YourObject_set,
+};
+
+static const pxObjectInterface YourObject_interfaces[] =
+{
+    {pxBarName, offsetof(YourObject, objectStruct.pObjectVt) - offsetof(YourObject, pBarVt)},
+    {pxObjectName, 0},
+};
+
+static const pxObjectVt YourObjectObjectVt =
+{
+    {
+        0,
+        pxObject_getInterface,
+    },
+    pxObject_destroy,
+    pxObject_clone,
+    sizeof(YourObject_interfaces)/sizeof(YourObject_interfaces[0]),
+    YourObject_interfaces,
+    sizeof(YourObject), 
+    offsetof(YourObject, objectStruct),
+    0,
+    NULL,
+};
+
+
+static pxBar *YourObjectCreate(pxAlloc *const pAlloc, pxInterface *const pOwner)
+{
+    YourObject *const pY =
+        (YourObject *)PXALLOC_alloc(pAlloc, sizeof(YourObject),
+                                    PXALLOC_F_DIRTY);
+    pY->pBarVt = &YourObjectBarVt;
+    pxObjectStructInit(&pY->objectStruct, &YourObjectObjectVt, pOwner);
+    pY->i = 0;
+
+    return (pxBar *)&pY->pBarVt;
+}
+
 static void testpxObjectCloning()
 {
     pxAlloc *const pAllocS = pxAllocSystemGet();
@@ -268,8 +361,36 @@ static void testpxObjectCloning()
         fprintf(stderr,
                 "testpxObjectCloning: clone member incorrect (%d)\n", __LINE__);
         
-    // TODO test cloning with a mixin
-    
+    // test cloning with a mixin
+    pxBar *const pBar4 = YourObjectCreate(pAllocD3, (pxInterface *)pFoo4);
+    PXBAR_set(pBar4, 911);
+    pxAlloc *const pAllocD4 = pxAllocDebugCreate(pAllocS, NULL);
+    pxObjectClonerInitGraph(&cloner, pAllocD4);
+    pxObject *const pBar4O = PXINTERFACE_getInterface(pBar4, pxObject);
+    pxBar *const pBar6 = (pxBar *)PXOBJECT_clone(pBar4O, pxBarName, &cloner);
+    pxObjectClonerCleanup(&cloner);
+
+    pAllocO = PXINTERFACE_getInterface(pAllocD3, pxObject);
+    PXOBJECT_destroy(pAllocO);
+
+    // check the state of the clones
+    if (PXBAR_get(pBar6) != 911)
+        fprintf(stderr,
+                "testpxObjectCloning: clone value incorrect (%d)\n", __LINE__);
+
+    pxFoo *const pFoo6 = PXINTERFACE_getInterface(pBar6, pxFoo);
+    if (!pFoo6)
+        fprintf(stderr, "testpxObjectCloning: mixin not cloned\n");
+    if (PXFOO_get(pFoo6) != 42)
+        fprintf(stderr,
+                "testpxObjectCloning: clone value incorrect (%d)\n", __LINE__);
+    pxFoo *const pFoo7 = PXFOO_getFoo(pFoo6);
+    if (!pFoo7)
+        fprintf(stderr,
+                "testpxObjectCloning: clone member incorrect (%d)\n", __LINE__);
+    if (PXFOO_get(pFoo7) != 17)
+        fprintf(stderr,
+                "testpxObjectCloning: clone value incorrect (%d)\n", __LINE__);
 }
 
 int main(void)

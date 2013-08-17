@@ -4,9 +4,6 @@
 
 (*) implement pxObject::clone()
 - test cloning with mixins
-- test cloning with members
-  - need to finish pxObjectMember
-    - add a flag to indicate non-interface members
 
 (*) implement pxString
 - can use this for pxHashMapLocal keys
