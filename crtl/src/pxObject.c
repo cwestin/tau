@@ -151,6 +151,25 @@ static inline pxObjectStruct *pxObjectCloner_cloneThis(
     return (pxObjectStruct *)(((char *)pNew) + pO->pObjectVt->objectOffset);
 }
 
+static size_t pxObjectCloner_countMembers(pxObjectStruct *const pO)
+{
+    size_t n = pO->pObjectVt->nMember;
+    if (!n)
+        return 0;
+
+    size_t nonNullMembers = 0;
+    const char *const p = ((char *)pO) - pO->pObjectVt->objectOffset;
+    for(const pxObjectMember *pMember = pO->pObjectVt->pMember; n;
+        ++pMember, --n)
+    {
+        pxInterface *const pI = *(pxInterface **)(p + pMember->memberOffset);
+        if (pI)
+            ++nonNullMembers;
+    }
+
+    return nonNullMembers;
+}
+
 /**
    Clone the first object.
 
@@ -166,7 +185,7 @@ static pxObjectStruct *pxObjectCloner_cloneSingle(
     pxObjectCloner *pCloner, pxObjectStruct *pO)
 {
     // check for any mixins or members that point to other objects
-    if (pO->pMixinList || pO->pObjectVt->nMember)
+    if (pO->pMixinList || pxObjectCloner_countMembers(pO))
     {
         // we'll have to do this with full context
         pxObjectClonerInitGraph(pCloner, pCloner->pAlloc);
@@ -216,10 +235,11 @@ static pxHmEntry *pxObjectCloner_create(void *const pctx, pxAlloc *const pAlloc)
     pItem->pNewO = pxObjectCloner_cloneThis(pCtx->pCloner, pItem->pOldO);
 
     // if necessary, add it to the list of things to attend to
-    if (!pItem->pOldO->pMixinList && !pItem->pOldO->pObjectVt->nMember)
+    if (!pItem->pOldO->pMixinList && !pxObjectCloner_countMembers(pItem->pOldO))
         pItem->pNextItem = NULL;
     else
     {
+        // TODO we can also skip this if all the members are NULL
         pItem->pNextItem = pCtx->pCloner->pItemList;
         pCtx->pCloner->pItemList = pItem;
     }
@@ -322,27 +342,30 @@ static void pxObjectClonerProcess(pxObjectCloner *const pCloner)
                 pxInterface *const pIOld =
                     *(pxInterface **)(pOldO + pMember->memberOffset);
 
-                // get the pxObject interface on the old interface
-                pxObject *const pOOld =
-                    (pxObject *)(((char *)pIOld) +
-                                 pIOld->pVt->interfaceVt.pxObjectOffset);
+                if (pIOld)
+                {
+                    // get the pxObject interface on the old interface
+                    pxObject *const pOOld =
+                        (pxObject *)(((char *)pIOld) +
+                                     pIOld->pVt->interfaceVt.pxObjectOffset);
 
-                pxObjectStruct *const pSOld =
-                    PXINTERFACE_STRUCT(pOOld, pxObjectStruct, pObjectVt);
+                    pxObjectStruct *const pSOld =
+                        PXINTERFACE_STRUCT(pOOld, pxObjectStruct, pObjectVt);
 
-                // clone (or find) the object
-                pxObjectStruct *const pSNew =
-                    pxObjectCloner_cloneGraph(pCloner, pSOld);
+                    // clone (or find) the object
+                    pxObjectStruct *const pSNew =
+                        pxObjectCloner_cloneGraph(pCloner, pSOld);
 
-                // obtain the proper interface
-                pxInterface *const pINew =
-                    (*pSNew->pObjectVt->interfaceVt.getInterface)(
-                        (pxInterface *)&pSNew->pObjectVt, pMember->pName);
+                    // obtain the proper interface
+                    pxInterface *const pINew =
+                        (*pSNew->pObjectVt->interfaceVt.getInterface)(
+                            (pxInterface *)&pSNew->pObjectVt, pMember->pName);
 
-                // put the interface pointer in the proper place
-                pxInterface **const ppINew =
-                    (pxInterface **)(pNewO + pMember->memberOffset);
-                *ppINew = pINew;
+                    // put the interface pointer in the proper place
+                    pxInterface **const ppINew =
+                        (pxInterface **)(pNewO + pMember->memberOffset);
+                    *ppINew = pINew;
+                }
             }
         }
     }

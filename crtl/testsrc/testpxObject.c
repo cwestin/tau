@@ -129,6 +129,11 @@ static const pxObjectInterface MyObject_interfaces[] =
     {pxObjectName, 0},
 };
 
+static const pxObjectMember MyObject_members[] =
+{
+    {0, offsetof(MyObject, pOther), pxFooName},
+};
+
 static const pxObjectVt MyObjectObjectVt =
 {
     {
@@ -141,8 +146,8 @@ static const pxObjectVt MyObjectObjectVt =
     MyObject_interfaces,
     sizeof(MyObject), 
     offsetof(MyObject, objectStruct),
-    0, // TODO add members (pOther)
-    NULL,
+    sizeof(MyObject_members)/sizeof(MyObject_members[0]),
+    MyObject_members,
 };
 
 static void testpxObject()
