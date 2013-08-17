@@ -391,6 +391,10 @@ static void testpxObjectCloning()
     if (PXFOO_get(pFoo7) != 17)
         fprintf(stderr,
                 "testpxObjectCloning: clone value incorrect (%d)\n", __LINE__);
+
+    if (PXFOO_getFoo(pFoo7) != pFoo6)
+        fprintf(stderr,
+                "testpxObjectCloning: clone member incorrect (%d)\n", __LINE__);
 }
 
 int main(void)

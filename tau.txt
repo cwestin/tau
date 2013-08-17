@@ -2,9 +2,6 @@
 - Add throughout (in progress)
 - set up for doxygen (early experiments not great; considering)
 
-(*) implement pxObject::clone()
-- test cloning with mixins
-
 (*) implement pxString
 - can use this for pxHashMapLocal keys
 
