@@ -44,6 +44,8 @@
 typedef struct
 {
     // locals
+    pxLoomSemaphore *pProducerSem;
+    pxLoomSemaphore *pConsumerSem;
     int *pi;
 
     pxLoomFrame loomFrame;
@@ -97,14 +99,20 @@ static const pxObjectVt Producer_frameObjectVt =
     NULL,
 };
 
-static Producer_frame *ProducerCreate(pxAlloc *const pAlloc, int *pi)
+static Producer_frame *ProducerCreate(
+    pxAlloc *const pAlloc, int *pi,
+    pxLoomSemaphore *pProducerSem, pxLoomSemaphore *pConsumerSem)
 {
     Producer_frame *const pFrame =
         PXALLOC_alloc(pAlloc, sizeof(Producer_frame), 0);
-    pFrame->pi = pi;
+
     pxLoomFrameInit(&pFrame->loomFrame, pAlloc,
                     &Producer_frameLoomContinuationVt,
                     &Producer_frameObjectVt);
+
+    pFrame->pProducerSem = pProducerSem;
+    pFrame->pConsumerSem = pConsumerSem;
+    pFrame->pi = pi;
 
     return pFrame;
 }
@@ -113,6 +121,8 @@ static Producer_frame *ProducerCreate(pxAlloc *const pAlloc, int *pi)
 typedef struct
 {
     // locals
+    pxLoomSemaphore *pProducerSem;
+    pxLoomSemaphore *pConsumerSem;
     int *pi;
 
     pxLoomFrame loomFrame;
@@ -126,9 +136,20 @@ static pxLoomState Consumer_resume(
 
     PXLOOMFRAME_BEGIN(&pFrame->loomFrame)
     {
+        // create two semaphores
+        pFrame->pProducerSem = pxLoomSemaphoreCreate(pLoom);
+        pFrame->pConsumerSem = pxLoomSemaphoreCreate(pLoom);
+
+        // create the producer, feeding it the semaphores and the shared int
         Producer_frame *const pProducer =
-            ProducerCreate(pFrame->loomFrame.pLocalAlloc, pFrame->pi);
+            ProducerCreate(pFrame->loomFrame.pLocalAlloc, pFrame->pi,
+                           pFrame->pProducerSem, pFrame->pConsumerSem);
+
+        // start up the producer
         PXLOOM_createCell(pLoom, &pProducer->loomFrame);
+
+        // consume the producer's ints until we hit the last
+        // TODO
     }
     PXLOOMFRAME_END(&pFrame->loomFrame)
 }

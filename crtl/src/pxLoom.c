@@ -85,85 +85,87 @@ pxLoomContinuation *pxLoomFrameInit(
 
 const char pxLoomSemaphoreName[] = "pxLoomSemaphore";
 
+struct pxLoom_s;
 typedef struct
 {
     unsigned n;
-    pxLoom *pLoom;
+    struct pxLoom_s *pLoom;
+
+    pxDllLink waitingCellList;
 
     const pxLoomSemaphoreVt *pLoomSemaphoreVt;
     pxObjectStruct objectStruct;
-} pxLoomSemaphore_local;
+} pxLoomSemaphore_Local;
 
-static void pxLoomSemaphore_local_put(pxLoomSemaphore *pI, unsigned n)
+static void pxLoomSemaphore_Local_put(pxLoomSemaphore *pI, unsigned n)
 {
-    pxLoomSemaphore_local *const pThis =
-        PXINTERFACE_STRUCT(pI, pxLoomSemaphore_local, pLoomSemaphoreVt);
+    pxLoomSemaphore_Local *const pThis =
+        PXINTERFACE_STRUCT(pI, pxLoomSemaphore_Local, pLoomSemaphoreVt);
 
     pThis->n += n;
     // TODO
 }
 
-static void pxLoomSemaphore_local_get(pxLoomSemaphore *pI, unsigned n)
+static void pxLoomSemaphore_Local_get(pxLoomSemaphore *pI, unsigned n)
 {
-    pxLoomSemaphore_local *const pThis =
-        PXINTERFACE_STRUCT(pI, pxLoomSemaphore_local, pLoomSemaphoreVt);
+    pxLoomSemaphore_Local *const pThis =
+        PXINTERFACE_STRUCT(pI, pxLoomSemaphore_Local, pLoomSemaphoreVt);
 
     // TODO
     pThis->n -= n;
 }
 
-static const pxLoomSemaphoreVt pxLoomSemaphore_localLoomSemaphoreVt =
+static const pxLoomSemaphoreVt pxLoomSemaphore_LocalLoomSemaphoreVt =
 {
     {
-        offsetof(pxLoomSemaphore_local, objectStruct.pObjectVt) - offsetof(pxLoomSemaphore_local, pLoomSemaphoreVt),
+        offsetof(pxLoomSemaphore_Local, objectStruct.pObjectVt) - offsetof(pxLoomSemaphore_Local, pLoomSemaphoreVt),
         pxObject_getInterface,
     },
-    pxLoomSemaphore_local_put,
-    pxLoomSemaphore_local_get,
+    pxLoomSemaphore_Local_put,
+    pxLoomSemaphore_Local_get,
 };
 
-static const pxObjectInterface pxLoomSemaphore_local_interfaces[] =
+static const pxObjectInterface pxLoomSemaphore_Local_interfaces[] =
 {
-    {pxLoomSemaphoreName, offsetof(pxLoomSemaphore_local, objectStruct.pObjectVt) - offsetof(pxLoomSemaphore_local, pLoomSemaphoreVt)},
+    {pxLoomSemaphoreName, offsetof(pxLoomSemaphore_Local, objectStruct.pObjectVt) - offsetof(pxLoomSemaphore_Local, pLoomSemaphoreVt)},
     {pxObjectName, 0},
 };
 
-static void pxLoomSemaphore_local_destroy(pxObject *pI)
+static void pxLoomSemaphore_Local_destroy(pxObject *pI)
 {
 /*
     pxLoomSempahore_local *const pThis =
-        PXINTERFACE_STRUCT(pI, pxLoomSemaphore_local, objectStruct.pObjectVt);
+        PXINTERFACE_STRUCT(pI, pxLoomSemaphore_Local, objectStruct.pObjectVt);
 */
 
-    pxExit("pxLoomSemaphore_local_destroy: unimplemented\n");
+    pxExit("pxLoomSemaphore_Local_destroy: unimplemented\n");
     pxObject_destroy(pI);
 }
 
-static const pxObjectVt pxLoomSemaphore_localObjectVt =
+static const pxObjectVt pxLoomSemaphore_LocalObjectVt =
 {
     {
         0,
         pxObject_getInterface,
     },
-    pxLoomSemaphore_local_destroy,
+    pxLoomSemaphore_Local_destroy,
     pxObject_cloneForbidden,
-    sizeof(pxLoomSemaphore_local_interfaces)/sizeof(pxLoomSemaphore_local_interfaces[0]),
-    pxLoomSemaphore_local_interfaces,
-    sizeof(pxLoomSemaphore_local), 
-    offsetof(pxLoomSemaphore_local, objectStruct),
+    sizeof(pxLoomSemaphore_Local_interfaces)/sizeof(pxLoomSemaphore_Local_interfaces[0]),
+    pxLoomSemaphore_Local_interfaces,
+    sizeof(pxLoomSemaphore_Local), 
+    offsetof(pxLoomSemaphore_Local, objectStruct),
     0,
     NULL,
 };
 
-
-typedef struct
+typedef struct pxLoom_Cell
 {
     pxLoomFrame *pTopFrame;
 
     pxDllLink link;
 } pxLoom_Cell;
 
-typedef struct
+typedef struct pxLoom_s
 {
     pxDllHead readyCellList;
 
@@ -172,6 +174,24 @@ typedef struct
     const pxLoomVt *pLoomVt;
     pxObjectStruct objectStruct;
 } pxLoom_s;
+
+pxLoomSemaphore *pxLoomSemaphoreCreate(pxLoom *pI)
+{
+    pxLoom_s *const pLoom = PXINTERFACE_STRUCT(pI, pxLoom_s, pLoomVt);
+
+    pxLoomSemaphore_Local *const pSem =
+        (pxLoomSemaphore_Local *)PXALLOC_alloc(
+            pLoom->pAlloc, sizeof(pxLoomSemaphore_Local), PXALLOC_F_DIRTY);
+    pSem->pLoomSemaphoreVt = &pxLoomSemaphore_LocalLoomSemaphoreVt;
+    pxObjectStructInit(
+        &pSem->objectStruct, &pxLoomSemaphore_LocalObjectVt, NULL);
+
+    pSem->n = 0;
+    pSem->pLoom = pLoom;
+    pxDllInit(&pSem->waitingCellList);
+
+    return (pxLoomSemaphore *)&pSem->pLoomSemaphoreVt;
+}
 
 static void pxLoom_createCell(pxLoom *const pI, pxLoomFrame *const pFrame)
 {

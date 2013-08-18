@@ -54,8 +54,14 @@ struct pxAlloc;
    on whether the target is local or remote.
 */
 
+/*
+  Return values for PXLOOMFRAME_END used by the loom to co-ordinate execution
+  across green threads
+ */
 typedef int pxLoomState;
-#define PXLOOMSTATE_RETURN 1 // function returned normally
+#define PXLOOMSTATE_RETURN 1 // function returned normally (pop)
+#define PXLOOMSTATE_CALL 2 // call a new function (push)
+#define PXLOOMSTATE_WAIT 3 // unschedule and wait for an event
 
 struct pxLoom;
 
@@ -105,6 +111,8 @@ pxLoomContinuation *pxLoomFrameInit(
 
 /**
    Canned implementation of pxObject_destroy for loom frames
+
+   Uses the local allocator to deallocate the frame
  */
 void pxLoomFrame_destroy(struct pxObject *pI);
 
@@ -132,6 +140,8 @@ typedef struct pxLoomSemaphore
 } pxLoomSemaphore;
 
 extern const char pxLoomSemaphoreName[];
+
+pxLoomSemaphore *pxLoomSemaphoreCreate(struct pxLoom *pLoom);
 
 
 struct pxLoom;
