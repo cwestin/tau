@@ -54,12 +54,15 @@ struct pxAlloc;
    on whether the target is local or remote.
 */
 
+typedef int pxLoomState;
+#define PXLOOMSTATE_RETURN 1 // function returned normally
+
 struct pxLoomContinuation;
 typedef struct pxLoomContinuationVt
 {
     pxInterfaceVt interfaceVt;
 
-    void (*resume)(struct pxLoomContinuation *pLC);
+    pxLoomState (*resume)(struct pxLoomContinuation *pLC);
 #define PXLOOMCONTINUATION_resume(pI) \
     ((*(pI)->pVt->resume)(pI))
 } pxLoomContinuationVt;
@@ -102,9 +105,10 @@ pxLoomContinuation *pxLoomFrameInit(
     switch((pLoomFrame)->lineNumber) { case 0:
 
 #define PXLOOMFRAME_END(pLoomFrame) \
+    break; \
     default: pxExit("invalid line number (%d) at %s:%d\n", \
                     (pLoomFrame)->lineNumber, __FILE__, __LINE__); \
-    break; }
+    break; } return PXLOOMSTATE_RETURN;
 
 struct pxLoomSemaphore;
 typedef struct pxLoomSemaphoreVt

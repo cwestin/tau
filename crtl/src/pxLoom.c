@@ -38,6 +38,10 @@
 #include "pxAlloc.h"
 #endif
 
+#ifndef PXDLL_H
+#include "pxDll.h"
+#endif
+
 #ifndef PXEXIT_H
 #include "pxExit.h"
 #endif
@@ -134,10 +138,17 @@ static const pxObjectVt pxLoomSemaphore_localObjectVt =
 };
 
 
-const char pxLoomName[] = "pxLoom";
+typedef struct
+{
+    pxLoomContinuation *pContinuation;
+
+    pxDllLink link;
+} pxLoom_Cell;
 
 typedef struct
 {
+    pxDllHead cellList;
+
     pxAlloc *pAlloc;
 
     const pxLoomVt *pLoomVt;
@@ -147,12 +158,42 @@ typedef struct
 static void pxLoom_createCell(pxLoom *const pI, pxLoomContinuation *const pLC)
 {
     pxLoom_s *const pThis = PXINTERFACE_STRUCT(pI, pxLoom_s, pLoomVt);
+
+    pxLoom_Cell *pCell = PXALLOC_alloc(
+        pThis->pAlloc, sizeof(pxLoom_Cell), PXALLOC_F_DIRTY);
+    pCell->pContinuation = pLC;
+    pxDllInit(&pCell->link);
+
+    // add this to the list of things that can run
+    pxDllAddLast(&pThis->cellList, &pCell->link);
 }
 
 static void pxLoom_run(pxLoom *const pI)
 {
     pxLoom_s *const pThis = PXINTERFACE_STRUCT(pI, pxLoom_s, pLoomVt);
+
+    pxDllLink *pLink;
+    while((pLink = pxDllGetFirst(&pThis->cellList)))
+    {
+        // remove the link from the list
+        pxDllRemove(pLink);
+
+        pxLoom_Cell *const pCell = PXDLL_STRUCT(pLink, pxLoom_Cell, link);
+
+        // execute until the cell yields
+        pxLoomState state = PXLOOMCONTINUATION_resume(pCell->pContinuation);
+        switch(state)
+        {
+        case PXLOOMSTATE_RETURN:
+            // TODO
+        default:
+            pxExit("pxLoom_run: unknown loom state %d\n", state);
+        }
+    }
 }
+
+
+const char pxLoomName[] = "pxLoom";
 
 static const pxLoomVt pxLoomLoomVt =
 {
@@ -201,6 +242,7 @@ pxLoom *pxLoomCreate(pxAlloc *pAlloc)
 {
     pxLoom_s *const pThis =
         PXALLOC_alloc(pAlloc, sizeof(pxLoom_s), PXALLOC_F_DIRTY);
+    pxDllInit(&pThis->cellList);
     pThis->pAlloc = pAlloc;
     pThis->pLoomVt = &pxLoomLoomVt;
     pxObjectStructInit(&pThis->objectStruct, &pxLoomObjectVt, NULL);
