@@ -46,6 +46,10 @@
 #include "pxExit.h"
 #endif
 
+#ifndef PXFREE_H
+#include "pxFree.h"
+#endif
+
 
 const char pxLoomContinuationName[] = "pxLoomContinuation";
 
@@ -140,7 +144,7 @@ static const pxObjectVt pxLoomSemaphore_localObjectVt =
 
 typedef struct
 {
-    pxLoomContinuation *pContinuation;
+    pxLoomFrame *pTopFrame;
 
     pxDllLink link;
 } pxLoom_Cell;
@@ -155,13 +159,13 @@ typedef struct
     pxObjectStruct objectStruct;
 } pxLoom_s;
 
-static void pxLoom_createCell(pxLoom *const pI, pxLoomContinuation *const pLC)
+static void pxLoom_createCell(pxLoom *const pI, pxLoomFrame *const pFrame)
 {
     pxLoom_s *const pThis = PXINTERFACE_STRUCT(pI, pxLoom_s, pLoomVt);
 
     pxLoom_Cell *pCell = PXALLOC_alloc(
         pThis->pAlloc, sizeof(pxLoom_Cell), PXALLOC_F_DIRTY);
-    pCell->pContinuation = pLC;
+    pCell->pTopFrame = pFrame;
     pxDllInit(&pCell->link);
 
     // add this to the list of things that can run
@@ -175,17 +179,40 @@ static void pxLoom_run(pxLoom *const pI)
     pxDllLink *pLink;
     while((pLink = pxDllGetFirst(&pThis->cellList)))
     {
-        // remove the link from the list
-        pxDllRemove(pLink);
-
         pxLoom_Cell *const pCell = PXDLL_STRUCT(pLink, pxLoom_Cell, link);
 
         // execute until the cell yields
-        pxLoomState state = PXLOOMCONTINUATION_resume(pCell->pContinuation);
+        pxLoomFrame *pFrame = pCell->pTopFrame;
+        pxLoomState state =
+            PXLOOMCONTINUATION_resume(
+                (pxLoomContinuation *)&pFrame->pLoomContinuationVt);
         switch(state)
         {
         case PXLOOMSTATE_RETURN:
+        {
+            // pop this frame off the cells's stack
+            pCell->pTopFrame = pFrame->pPreviousFrame;
+
+            // deallocate the popped frame
+/*
+            pxFree *const pFreeFrame =
+                PXINTERFACE_getInterface(pFrame->pLocalAlloc, pxFree);
             // TODO
+*/
+
+            // if there's nothing more to do, the cell dies
+            if (!pCell->pTopFrame)
+            {
+                pxDllRemove(pLink);
+
+                pxFree *const pFree =
+                    PXINTERFACE_getInterface(pThis->pAlloc, pxFree);
+                PXFREE_free(pFree, pCell);
+            }
+
+            break;
+        }
+
         default:
             pxExit("pxLoom_run: unknown loom state %d\n", state);
         }

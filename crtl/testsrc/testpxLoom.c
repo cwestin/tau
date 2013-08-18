@@ -96,14 +96,16 @@ static const pxObjectVt Producer_frameObjectVt =
     NULL,
 };
 
-static pxLoomContinuation *ProducerCreate(pxAlloc *const pAlloc)
+static Producer_frame *ProducerCreate(pxAlloc *const pAlloc)
 {
     Producer_frame *const pFrame =
         PXALLOC_alloc(pAlloc, sizeof(Producer_frame), 0);
     pFrame->i = 0;
-    return pxLoomFrameInit(&pFrame->loomFrame, pAlloc,
-                           &Producer_frameLoomContinuationVt,
-                           &Producer_frameObjectVt);
+    pxLoomFrameInit(&pFrame->loomFrame, pAlloc,
+                    &Producer_frameLoomContinuationVt,
+                    &Producer_frameObjectVt);
+
+    return pFrame;
 }
 
 typedef struct
@@ -117,14 +119,12 @@ static void testpxLoom()
     struct pxAlloc *const pAllocD = pxAllocDebugCreate(pAllocS, NULL);
     pxLoom *const pLoom = pxLoomCreate(pAllocD);
 
-    pxLoomContinuation *const pProducer = ProducerCreate(pAllocD);
-    PXLOOM_createCell(pLoom, pProducer);
+    Producer_frame *const pProducer = ProducerCreate(pAllocD);
+
+    PXLOOM_createCell(pLoom, &pProducer->loomFrame);
     PXLOOM_run(pLoom);
 
-    Producer_frame *const pProducer_frame =
-        PXINTERFACE_STRUCT(pProducer, Producer_frame,
-                           loomFrame.pLoomContinuationVt);
-    if (pProducer_frame->i != 1)
+    if (pProducer->i != 1)
         fprintf(stderr, "producer did not run\n");
 }
 

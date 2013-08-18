@@ -132,9 +132,9 @@ typedef struct pxLoomVt
 {
     pxInterfaceVt interfaceVt;
 
-    void (*createCell)(struct pxLoom *pI, pxLoomContinuation *pLC);
-#define PXLOOM_createCell(pI, pLC) \
-    ((*(pI)->pVt->createCell)(pI, pLC))
+    void (*createCell)(struct pxLoom *pI, pxLoomFrame *pFrame);
+#define PXLOOM_createCell(pI, pFrame) \
+    ((*(pI)->pVt->createCell)(pI, pFrame))
 
     void (*run)(struct pxLoom *pI);
 #define PXLOOM_run(pI) \
