@@ -112,6 +112,9 @@ static Producer_frame *ProducerCreate(pxAlloc *const pAlloc, int *pi)
 
 typedef struct
 {
+    // locals
+    int *pi;
+
     pxLoomFrame loomFrame;
 } Consumer_frame;
 
@@ -123,7 +126,9 @@ static pxLoomState Consumer_resume(
 
     PXLOOMFRAME_BEGIN(&pFrame->loomFrame)
     {
-        fprintf(stderr, "Consumer_resume: called\n");
+        Producer_frame *const pProducer =
+            ProducerCreate(pFrame->loomFrame.pLocalAlloc, pFrame->pi);
+        PXLOOM_createCell(pLoom, &pProducer->loomFrame);
     }
     PXLOOMFRAME_END(&pFrame->loomFrame)
 }
@@ -163,11 +168,12 @@ static const pxObjectVt Consumer_frameObjectVt =
     NULL,
 };
 
-static Consumer_frame *ConsumerCreate(pxAlloc *const pAlloc)
+static Consumer_frame *ConsumerCreate(pxAlloc *const pAlloc, int *pi)
 {
     Consumer_frame *const pFrame =
         PXALLOC_alloc(pAlloc, sizeof(Consumer_frame), 0);
 
+    pFrame->pi = pi;
     pxLoomFrameInit(&pFrame->loomFrame, pAlloc,
                     &Consumer_frameLoomContinuationVt,
                     &Consumer_frameObjectVt);
@@ -183,9 +189,9 @@ static void testpxLoom()
     pxLoom *const pLoom = pxLoomCreate(pAllocD);
 
     int i = 0;
-    Producer_frame *const pProducer = ProducerCreate(pAllocD, &i);
+    Consumer_frame *const pConsumer = ConsumerCreate(pAllocD, &i);
 
-    PXLOOM_createCell(pLoom, &pProducer->loomFrame);
+    PXLOOM_createCell(pLoom, &pConsumer->loomFrame);
     PXLOOM_run(pLoom);
 
     if (i != 1)

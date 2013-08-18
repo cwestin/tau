@@ -109,10 +109,10 @@ pxLoomContinuation *pxLoomFrameInit(
 void pxLoomFrame_destroy(struct pxObject *pI);
 
 #define PXLOOMFRAME_BEGIN(pLoomFrame) \
-    switch((pLoomFrame)->lineNumber) { case 0:
+    switch((pLoomFrame)->lineNumber) { case 0: {
 
 #define PXLOOMFRAME_END(pLoomFrame) \
-    break; \
+    break; } \
     default: pxExit("invalid line number (%d) at %s:%d\n", \
                     (pLoomFrame)->lineNumber, __FILE__, __LINE__); \
     break; } return PXLOOMSTATE_RETURN;
