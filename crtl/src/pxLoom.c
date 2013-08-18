@@ -199,7 +199,7 @@ static void pxLoom_run(pxLoom *const pI)
         pxLoomFrame *pFrame = pCell->pTopFrame;
         pxLoomState state =
             PXLOOMCONTINUATION_resume(
-                (pxLoomContinuation *)&pFrame->pLoomContinuationVt);
+                (pxLoomContinuation *)&pFrame->pLoomContinuationVt, pI);
         switch(state)
         {
         case PXLOOMSTATE_RETURN:

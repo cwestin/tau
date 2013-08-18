@@ -57,14 +57,16 @@ struct pxAlloc;
 typedef int pxLoomState;
 #define PXLOOMSTATE_RETURN 1 // function returned normally
 
+struct pxLoom;
+
 struct pxLoomContinuation;
 typedef struct pxLoomContinuationVt
 {
     pxInterfaceVt interfaceVt;
 
-    pxLoomState (*resume)(struct pxLoomContinuation *pLC);
-#define PXLOOMCONTINUATION_resume(pI) \
-    ((*(pI)->pVt->resume)(pI))
+    pxLoomState (*resume)(struct pxLoomContinuation *pLC, struct pxLoom *pL);
+#define PXLOOMCONTINUATION_resume(pI, pL)               \
+    ((*(pI)->pVt->resume)(pI, pL))
 } pxLoomContinuationVt;
 
 typedef struct pxLoomContinuation

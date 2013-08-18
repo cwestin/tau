@@ -49,7 +49,8 @@ typedef struct
     pxLoomFrame loomFrame;
 } Producer_frame;
 
-static pxLoomState Producer_resume(pxLoomContinuation *pLC)
+static pxLoomState Producer_resume(
+    pxLoomContinuation *const pLC, pxLoom *const pLoom)
 {
     Producer_frame *const pFrame =
         PXINTERFACE_STRUCT(pLC, Producer_frame, loomFrame.pLoomContinuationVt);
@@ -114,7 +115,8 @@ typedef struct
     pxLoomFrame loomFrame;
 } Consumer_frame;
 
-static pxLoomState Consumer_resume(pxLoomContinuation *pLC)
+static pxLoomState Consumer_resume(
+    pxLoomContinuation *const pLC, pxLoom *const pLoom)
 {
     Consumer_frame *const pFrame =
         PXINTERFACE_STRUCT(pLC, Consumer_frame, loomFrame.pLoomContinuationVt);
