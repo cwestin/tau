@@ -15,6 +15,15 @@
   limitations under the License.
  */
 
+#ifndef PX_STDIO_H
+#include <stdio.h>
+#define PX_STDIO_H
+#endif
+
+#ifndef PXALLOC_H
+#include "pxAlloc.h"
+#endif
+
 #ifndef PXALLOCDEBUG_H
 #include "pxAllocDebug.h"
 #endif
@@ -27,12 +36,96 @@
 #include "pxLoom.h"
 #endif
 
+#ifndef PXOBJECT_H
+#include "pxObject.h"
+#endif
+
+
+typedef struct
+{
+    // locals
+    int i;
+
+    pxLoomFrame loomFrame;
+} Producer_frame;
+
+static void Producer_resume(pxLoomContinuation *pLC)
+{
+    Producer_frame *const pFrame =
+        PXINTERFACE_STRUCT(pLC, Producer_frame, loomFrame.pLoomContinuationVt);
+
+    PXLOOMFRAME_BEGIN(&pFrame->loomFrame)
+    {
+        ++pFrame->i;
+    }
+    PXLOOMFRAME_END(&pFrame->loomFrame)
+}
+
+static const pxLoomContinuationVt Producer_frameLoomContinuationVt =
+{
+    {
+        offsetof(Producer_frame, loomFrame.objectStruct.pObjectVt) -
+            offsetof(Producer_frame, loomFrame.pLoomContinuationVt),
+        pxObject_getInterface,
+    },
+    Producer_resume,
+};
+
+
+static const pxObjectInterface Producer_frame_interfaces[] =
+{
+    {pxLoomContinuationName,
+     offsetof(Producer_frame, loomFrame.objectStruct.pObjectVt) -
+         offsetof(Producer_frame, loomFrame.pLoomContinuationVt)},
+    {pxObjectName, 0},
+};
+
+static const pxObjectVt Producer_frameObjectVt =
+{
+    {
+        0,
+        pxObject_getInterface,
+    },
+    pxObject_destroy,
+    pxObject_cloneForbidden, // TODO
+    sizeof(Producer_frame_interfaces)/sizeof(Producer_frame_interfaces[0]),
+    Producer_frame_interfaces,
+    sizeof(Producer_frame),
+    offsetof(Producer_frame, loomFrame.objectStruct),
+    0,
+    NULL,
+};
+
+static pxLoomContinuation *ProducerCreate(pxAlloc *const pAlloc)
+{
+    Producer_frame *const pFrame =
+        PXALLOC_alloc(pAlloc, sizeof(Producer_frame), 0);
+    pFrame->i = 0;
+    return pxLoomFrameInit(&pFrame->loomFrame, pAlloc,
+                           &Producer_frameLoomContinuationVt,
+                           &Producer_frameObjectVt);
+}
+
+typedef struct
+{
+    pxLoomFrame loomFrame;
+} Consumer_frame;
 
 static void testpxLoom()
 {
     struct pxAlloc *const pAllocS = pxAllocSystemGet();
     struct pxAlloc *const pAllocD = pxAllocDebugCreate(pAllocS, NULL);
     pxLoom *const pLoom = pxLoomCreate(pAllocD);
+
+    pxLoomContinuation *const pProducer = ProducerCreate(pAllocD);
+    PXLOOM_createCell(pLoom, pProducer);
+    PXLOOM_run(pLoom);
+
+    Producer_frame *const pProducer_frame =
+        PXINTERFACE_STRUCT(pProducer, Producer_frame,
+                           loomFrame.pLoomContinuationVt);
+    if (pProducer_frame->i != 1)
+        fprintf(stderr, "producer did not run\n");
 }
 
 int main(void)

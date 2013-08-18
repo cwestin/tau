@@ -43,8 +43,23 @@
 #endif
 
 
-const char pxLoomClosureName[] = "pxLoomClosure";
+const char pxLoomContinuationName[] = "pxLoomContinuation";
 
+
+pxLoomContinuation *pxLoomFrameInit(
+    pxLoomFrame *const pLoomFrame, pxAlloc *const pAlloc,
+    const pxLoomContinuationVt *const pLoomContinuationVt,
+    const pxObjectVt *const pLoomObjectVt)
+{
+    pLoomFrame->lineNumber = 0;
+    pLoomFrame->pLocalAlloc = pAlloc;
+    pLoomFrame->pPreviousFrame = NULL;
+
+    pLoomFrame->pLoomContinuationVt = pLoomContinuationVt;
+    pxObjectStructInit(&pLoomFrame->objectStruct, pLoomObjectVt, NULL);
+
+    return (pxLoomContinuation *)&pLoomFrame->pLoomContinuationVt;
+}
 
 const char pxLoomSemaphoreName[] = "pxLoomSemaphore";
 
@@ -129,12 +144,24 @@ typedef struct
     pxObjectStruct objectStruct;
 } pxLoom_s;
 
+static void pxLoom_createCell(pxLoom *const pI, pxLoomContinuation *const pLC)
+{
+    pxLoom_s *const pThis = PXINTERFACE_STRUCT(pI, pxLoom_s, pLoomVt);
+}
+
+static void pxLoom_run(pxLoom *const pI)
+{
+    pxLoom_s *const pThis = PXINTERFACE_STRUCT(pI, pxLoom_s, pLoomVt);
+}
+
 static const pxLoomVt pxLoomLoomVt =
 {
     {
         offsetof(pxLoom_s, objectStruct.pObjectVt) - offsetof(pxLoom_s, pLoomVt),
         pxObject_getInterface,
     },
+    pxLoom_createCell,
+    pxLoom_run,
 };
 
 static const pxObjectInterface pxLoom_interfaces[] =

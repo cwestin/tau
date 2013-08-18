@@ -24,6 +24,10 @@
 #define PX_STDDEF_H
 #endif
 
+#ifndef PXEXIT_H
+#include "pxExit.h"
+#endif
+
 #ifndef PXINTERFACE_H
 #include "pxInterface.h"
 #endif
@@ -50,22 +54,22 @@ struct pxAlloc;
    on whether the target is local or remote.
 */
 
-struct pxLoomClosure;
-typedef struct pxLoomClosureVt
+struct pxLoomContinuation;
+typedef struct pxLoomContinuationVt
 {
     pxInterfaceVt interfaceVt;
 
-    void (*resume)(struct pxLoomClosure *pLC);
-#define PXLOOMCLOSURE_resume(pI) \
+    void (*resume)(struct pxLoomContinuation *pLC);
+#define PXLOOMCONTINUATION_resume(pI) \
     ((*(pI)->pVt->resume)(pI))
-} pxLoomClosureVt;
+} pxLoomContinuationVt;
 
-typedef struct pxLoomClosure
+typedef struct pxLoomContinuation
 {
-    const pxLoomClosureVt *const pVt;
-} pxLoomClosure;
+    const pxLoomContinuationVt *const pVt;
+} pxLoomContinuation;
 
-extern const char pxLoomClosureName[];
+extern const char pxLoomContinuationName[];
 
 
 /*
@@ -79,15 +83,28 @@ extern const char pxLoomClosureName[];
  */
 typedef struct pxLoomFrame
 {
+// private:
     unsigned lineNumber;
     struct pxAlloc *pLocalAlloc;
     struct pxLoomFrame *pPreviousFrame;
 
-    const pxLoomClosureVt *pLoomClosureVt;
+    const pxLoomContinuationVt *pLoomContinuationVt;
     pxObjectStruct objectStruct;
 } pxLoomFrame;
 
 
+pxLoomContinuation *pxLoomFrameInit(
+    pxLoomFrame *pLoomFrame, struct pxAlloc *pAlloc,
+    const pxLoomContinuationVt *pLoomContinuationVt,
+    const pxObjectVt *pLoomObjectVt);
+
+#define PXLOOMFRAME_BEGIN(pLoomFrame) \
+    switch((pLoomFrame)->lineNumber) { case 0:
+
+#define PXLOOMFRAME_END(pLoomFrame) \
+    default: pxExit("invalid line number (%d) at %s:%d\n", \
+                    (pLoomFrame)->lineNumber, __FILE__, __LINE__); \
+    break; }
 
 struct pxLoomSemaphore;
 typedef struct pxLoomSemaphoreVt
@@ -110,6 +127,14 @@ struct pxLoom;
 typedef struct pxLoomVt
 {
     pxInterfaceVt interfaceVt;
+
+    void (*createCell)(struct pxLoom *pI, pxLoomContinuation *pLC);
+#define PXLOOM_createCell(pI, pLC) \
+    ((*(pI)->pVt->createCell)(pI, pLC))
+
+    void (*run)(struct pxLoom *pI);
+#define PXLOOM_run(pI) \
+    ((*(pI)->pVt->run)(pI))
 } pxLoomVt;
 
 typedef struct pxLoom
