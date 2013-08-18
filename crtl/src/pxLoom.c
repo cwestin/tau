@@ -54,6 +54,20 @@
 const char pxLoomContinuationName[] = "pxLoomContinuation";
 
 
+void pxLoomFrame_destroy(pxObject *const pI)
+{
+    pxLoomFrame *const pThis =
+        PXINTERFACE_STRUCT(pI, pxLoomFrame, objectStruct.pObjectVt);
+
+    pxFree *const pFree = PXINTERFACE_getInterface(pThis->pLocalAlloc, pxFree);
+
+    void *const p = ((char *)pThis) - pI->pVt->objectOffset +
+        offsetof(pxLoomFrame, objectStruct);
+
+    pxObject_destroy(pI);
+    PXFREE_free(pFree, p);
+}
+
 pxLoomContinuation *pxLoomFrameInit(
     pxLoomFrame *const pLoomFrame, pxAlloc *const pAlloc,
     const pxLoomContinuationVt *const pLoomContinuationVt,
@@ -151,7 +165,7 @@ typedef struct
 
 typedef struct
 {
-    pxDllHead cellList;
+    pxDllHead readyCellList;
 
     pxAlloc *pAlloc;
 
@@ -169,7 +183,7 @@ static void pxLoom_createCell(pxLoom *const pI, pxLoomFrame *const pFrame)
     pxDllInit(&pCell->link);
 
     // add this to the list of things that can run
-    pxDllAddLast(&pThis->cellList, &pCell->link);
+    pxDllAddLast(&pThis->readyCellList, &pCell->link);
 }
 
 static void pxLoom_run(pxLoom *const pI)
@@ -177,7 +191,7 @@ static void pxLoom_run(pxLoom *const pI)
     pxLoom_s *const pThis = PXINTERFACE_STRUCT(pI, pxLoom_s, pLoomVt);
 
     pxDllLink *pLink;
-    while((pLink = pxDllGetFirst(&pThis->cellList)))
+    while((pLink = pxDllGetFirst(&pThis->readyCellList)))
     {
         pxLoom_Cell *const pCell = PXDLL_STRUCT(pLink, pxLoom_Cell, link);
 
@@ -194,11 +208,7 @@ static void pxLoom_run(pxLoom *const pI)
             pCell->pTopFrame = pFrame->pPreviousFrame;
 
             // deallocate the popped frame
-/*
-            pxFree *const pFreeFrame =
-                PXINTERFACE_getInterface(pFrame->pLocalAlloc, pxFree);
-            // TODO
-*/
+            PXOBJECT_destroy((pxObject *)&pFrame->objectStruct.pObjectVt);
 
             // if there's nothing more to do, the cell dies
             if (!pCell->pTopFrame)
@@ -269,7 +279,7 @@ pxLoom *pxLoomCreate(pxAlloc *pAlloc)
 {
     pxLoom_s *const pThis =
         PXALLOC_alloc(pAlloc, sizeof(pxLoom_s), PXALLOC_F_DIRTY);
-    pxDllInit(&pThis->cellList);
+    pxDllInit(&pThis->readyCellList);
     pThis->pAlloc = pAlloc;
     pThis->pLoomVt = &pxLoomLoomVt;
     pxObjectStructInit(&pThis->objectStruct, &pxLoomObjectVt, NULL);

@@ -86,7 +86,7 @@ static const pxObjectVt Producer_frameObjectVt =
         0,
         pxObject_getInterface,
     },
-    pxObject_destroy,
+    pxLoomFrame_destroy,
     pxObject_cloneForbidden, // TODO
     sizeof(Producer_frame_interfaces)/sizeof(Producer_frame_interfaces[0]),
     Producer_frame_interfaces,

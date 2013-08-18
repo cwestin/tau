@@ -101,6 +101,11 @@ pxLoomContinuation *pxLoomFrameInit(
     const pxLoomContinuationVt *pLoomContinuationVt,
     const pxObjectVt *pLoomObjectVt);
 
+/**
+   Canned implementation of pxObject_destroy for loom frames
+ */
+void pxLoomFrame_destroy(struct pxObject *pI);
+
 #define PXLOOMFRAME_BEGIN(pLoomFrame) \
     switch((pLoomFrame)->lineNumber) { case 0:
 
