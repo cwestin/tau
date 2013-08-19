@@ -83,6 +83,21 @@ pxLoomContinuation *pxLoomFrameInit(
     return (pxLoomContinuation *)&pLoomFrame->pLoomContinuationVt;
 }
 
+
+typedef struct pxLoom_s
+{
+    struct pxLoom_Cell *pCurrentCell; // only valid during calls to _resume
+
+    pxDllHead readyCellList;
+    pxDllHead waitingCellList;
+
+    pxAlloc *pAlloc;
+
+    const pxLoomVt *pLoomVt;
+    pxObjectStruct objectStruct;
+} pxLoom_s;
+
+
 const char pxLoomSemaphoreName[] = "pxLoomSemaphore";
 
 struct pxLoom_s;
@@ -109,13 +124,28 @@ static void pxLoomSemaphore_Local_put(pxLoomSemaphore *pI, unsigned n)
     // TODO
 }
 
-static void pxLoomSemaphore_Local_get(pxLoomSemaphore *pI, unsigned n)
+static bool pxLoomSemaphore_Local_get(
+    pxLoomSemaphore *const pI, pxLoom *const pLoom,
+    pxLoomSemaphore_Waiter *const pWaiter, const unsigned n)
 {
     pxLoomSemaphore_Local *const pThis =
         PXINTERFACE_STRUCT(pI, pxLoomSemaphore_Local, pLoomSemaphoreVt);
 
-    // TODO
-    pThis->n -= n;
+    // if we can satisfy the request, do so immediately
+    if (pThis->n >= n)
+    {
+        pThis->n -= n;
+        return true;
+    }
+
+    pxLoom_s *const pLoom_s = PXINTERFACE_STRUCT(pLoom, pxLoom_s, pLoomVt);
+
+    pWaiter->n = n;
+    pWaiter->pCell = pLoom_s->pCurrentCell;
+    pxDllInit(&pWaiter->link);
+    pxDllAddLast(&pThis->waitingCellList, &pWaiter->link);
+
+    return false;
 }
 
 static const pxLoomSemaphoreVt pxLoomSemaphore_LocalLoomSemaphoreVt =
@@ -167,19 +197,6 @@ typedef struct pxLoom_Cell
 
     pxDllLink link;
 } pxLoom_Cell;
-
-typedef struct pxLoom_s
-{
-    pxLoom_Cell *pCurrentCell; // only valid during calls to _resume
-
-    pxDllHead readyCellList;
-    pxDllHead waitingCellList;
-
-    pxAlloc *pAlloc;
-
-    const pxLoomVt *pLoomVt;
-    pxObjectStruct objectStruct;
-} pxLoom_s;
 
 pxLoomSemaphore *pxLoomSemaphoreCreate(pxLoom *pI, unsigned n)
 {
@@ -253,6 +270,11 @@ static void pxLoom_run(pxLoom *const pI)
         case PXLOOMSTATE_CALL:
             // nothing to do, we just need to run the new top frame
             // which will happen on the next pass of the loop
+            break;
+
+        case PXLOOMSTATE_WAIT:
+            pxDllRemove(pLink);
+            pxDllAddLast(&pThis->waitingCellList, pLink);
             break;
 
         default:

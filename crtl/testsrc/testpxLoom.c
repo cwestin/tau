@@ -68,6 +68,8 @@ typedef struct
     // locals
     unsigned f1;
     unsigned f2;
+
+    // called function results
     union
     {
         Fibo_results Fibo_results_r;
@@ -166,7 +168,7 @@ typedef struct
     pxLoomSemaphore *pConsumerSem;
     unsigned *pu;
 
-    // function results
+    // called function results
     union
     {
         Fibo_results Fibo_results_r;

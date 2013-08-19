@@ -24,9 +24,18 @@
 #define PX_LIMITS_H
 #endif
 
+#ifndef PX_STDBOOL_H
+#include <stdbool.h>
+#define PX_STDBOOL_H
+#endif
+
 #ifndef PX_STDDEF_H
 #include <stddef.h>
 #define PX_STDDEF_H
+#endif
+
+#ifndef PXDLL_H
+#include "pxDll.h"
 #endif
 
 #ifndef PXEXIT_H
@@ -130,13 +139,30 @@ void pxLoomFrame_destroy(struct pxObject *pI);
                     (pLoomFrame)->lineNumber, __FILE__, __LINE__); \
     break; } return PXLOOMSTATE_RETURN;
 
-#define PXLOOMFRAME_CALL(pLoomFrame, pLoom, pCallFrame) \
-    pxLoomCall(pLoom, pCallFrame); \
-    (pLoomFrame)->lineNumber = __LINE__; return PXLOOMSTATE_CALL; } case __LINE__: {
 
 #define PXLOOMFRAME_RETURN(pLoomFrame) \
     (pLoomFrame)->lineNumber = INT_MAX; \
     return PXLOOMSTATE_RETURN;
+
+
+#define PXLOOMFRAME_CALL(pLoomFrame, pLoom, pCallFrame) \
+    pxLoomCall(pLoom, pCallFrame); \
+    (pLoomFrame)->lineNumber = __LINE__; return PXLOOMSTATE_CALL; } case __LINE__: {
+
+
+typedef struct
+{
+    unsigned n; // how many counts this waiter requires
+    struct pxLoom_Cell *pCell; // the cell that is waiting
+    pxDllLink link; // link on list of waiters
+} pxLoomSemaphore_Waiter;
+
+#define PXLOOMFRAME_SEMAPHOREGET(pLoomFrame, pLoom, pSem, n) \
+    { pxLoomSemaphore_Waiter _waiter; \
+      if (!((*(pSem)->pVt->get)(pSem, pLoom, &_waiter, n))) \
+          (pLoomFrame)->lineNumber == __LINE__; return PXLOOMSTATE_WAIT; }} case __LINE__: {
+
+    
 
 
 struct pxLoomSemaphore;
@@ -145,7 +171,12 @@ typedef struct pxLoomSemaphoreVt
     pxInterfaceVt interfaceVt;
 
     void (*put)(struct pxLoomSemaphore *pLS, unsigned n);
-    void (*get)(struct pxLoomSemaphore *pLS, unsigned n);
+#define PXLOOMSEMAPHORE_put(pI, n) \
+    ((*(pI)->pVt->put)(pI, n))
+
+    bool (*get)(struct pxLoomSemaphore *pLS, struct pxLoom *pLoom,
+                pxLoomSemaphore_Waiter *pWaiter, unsigned n);
+// use PXLOOMFRAME_SEMAPHOREGET
 } pxLoomSemaphoreVt;
 
 typedef struct pxLoomSemaphore
