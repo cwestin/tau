@@ -14,6 +14,8 @@
 (*) makemake to handle transitive dependencies
 
 (*) Implement pxLoom
+- calls to functions
+  - Fibo_frame
 - semaphores for producer/consumers, so channels work
 - Test producer/consumer pattern
 - select from one of multiple channels

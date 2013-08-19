@@ -19,6 +19,11 @@
 #ifndef PXLOOM_H
 #define PXLOOM_H
 
+#ifndef PX_LIMITS_H
+#include <limits.h>
+#define PX_LIMITS_H
+#endif
+
 #ifndef PX_STDDEF_H
 #include <stddef.h>
 #define PX_STDDEF_H
@@ -125,6 +130,15 @@ void pxLoomFrame_destroy(struct pxObject *pI);
                     (pLoomFrame)->lineNumber, __FILE__, __LINE__); \
     break; } return PXLOOMSTATE_RETURN;
 
+#define PXLOOMFRAME_CALL(pLoomFrame, pLoom, pCallFrame) \
+    pxLoomCall(pLoom, pCallFrame); \
+    (pLoomFrame)->lineNumber = __LINE__; return PXLOOMSTATE_CALL; } case __LINE__: {
+
+#define PXLOOMFRAME_RETURN(pLoomFrame) \
+    (pLoomFrame)->lineNumber = INT_MAX; \
+    return PXLOOMSTATE_RETURN;
+
+
 struct pxLoomSemaphore;
 typedef struct pxLoomSemaphoreVt
 {
@@ -141,7 +155,14 @@ typedef struct pxLoomSemaphore
 
 extern const char pxLoomSemaphoreName[];
 
-pxLoomSemaphore *pxLoomSemaphoreCreate(struct pxLoom *pLoom);
+/**
+   Create a loom semaphore
+
+   @param pLoom the loom
+   @param n the number of counts it should start with
+   @returns pointer to the semaphore's interface
+ */
+pxLoomSemaphore *pxLoomSemaphoreCreate(struct pxLoom *pLoom, unsigned n);
 
 
 struct pxLoom;
@@ -167,5 +188,10 @@ extern const char pxLoomName[];
 
 
 pxLoom *pxLoomCreate(struct pxAlloc *pAlloc);
+
+/*
+  For internal use by PXLOOMFRAME_CALL
+ */
+void pxLoomCall(pxLoom *pLoom, pxLoomFrame *pFrame);
 
 #endif // PXLOOM_H

@@ -102,7 +102,10 @@ static void pxLoomSemaphore_Local_put(pxLoomSemaphore *pI, unsigned n)
     pxLoomSemaphore_Local *const pThis =
         PXINTERFACE_STRUCT(pI, pxLoomSemaphore_Local, pLoomSemaphoreVt);
 
+    // increment the number of available counts
     pThis->n += n;
+
+    // move waiters from the waiting list to the ready list
     // TODO
 }
 
@@ -167,7 +170,10 @@ typedef struct pxLoom_Cell
 
 typedef struct pxLoom_s
 {
+    pxLoom_Cell *pCurrentCell; // only valid during calls to _resume
+
     pxDllHead readyCellList;
+    pxDllHead waitingCellList;
 
     pxAlloc *pAlloc;
 
@@ -175,7 +181,7 @@ typedef struct pxLoom_s
     pxObjectStruct objectStruct;
 } pxLoom_s;
 
-pxLoomSemaphore *pxLoomSemaphoreCreate(pxLoom *pI)
+pxLoomSemaphore *pxLoomSemaphoreCreate(pxLoom *pI, unsigned n)
 {
     pxLoom_s *const pLoom = PXINTERFACE_STRUCT(pI, pxLoom_s, pLoomVt);
 
@@ -186,7 +192,7 @@ pxLoomSemaphore *pxLoomSemaphoreCreate(pxLoom *pI)
     pxObjectStructInit(
         &pSem->objectStruct, &pxLoomSemaphore_LocalObjectVt, NULL);
 
-    pSem->n = 0;
+    pSem->n = n;
     pSem->pLoom = pLoom;
     pxDllInit(&pSem->waitingCellList);
 
@@ -217,6 +223,7 @@ static void pxLoom_run(pxLoom *const pI)
 
         // execute until the cell yields
         pxLoomFrame *pFrame = pCell->pTopFrame;
+        pThis->pCurrentCell = pCell;
         pxLoomState state =
             PXLOOMCONTINUATION_resume(
                 (pxLoomContinuation *)&pFrame->pLoomContinuationVt, pI);
@@ -243,9 +250,16 @@ static void pxLoom_run(pxLoom *const pI)
             break;
         }
 
+        case PXLOOMSTATE_CALL:
+            // nothing to do, we just need to run the new top frame
+            // which will happen on the next pass of the loop
+            break;
+
         default:
             pxExit("pxLoom_run: unknown loom state %d\n", state);
         }
+
+        // TODO round-robin scheduling
     }
 }
 
@@ -300,9 +314,18 @@ pxLoom *pxLoomCreate(pxAlloc *pAlloc)
     pxLoom_s *const pThis =
         PXALLOC_alloc(pAlloc, sizeof(pxLoom_s), PXALLOC_F_DIRTY);
     pxDllInit(&pThis->readyCellList);
+    pxDllInit(&pThis->waitingCellList);
     pThis->pAlloc = pAlloc;
     pThis->pLoomVt = &pxLoomLoomVt;
     pxObjectStructInit(&pThis->objectStruct, &pxLoomObjectVt, NULL);
 
     return (pxLoom *)&pThis->pLoomVt;
+}
+
+void pxLoomCall(pxLoom *pI, pxLoomFrame *pFrame)
+{
+    pxLoom_s *const pThis = PXINTERFACE_STRUCT(pI, pxLoom_s, pLoomVt);
+
+    pFrame->pPreviousFrame = pThis->pCurrentCell->pTopFrame;
+    pThis->pCurrentCell->pTopFrame = pFrame;
 }

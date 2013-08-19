@@ -41,12 +41,136 @@
 #endif
 
 
+static unsigned fibo(unsigned n)
+{
+    if (n <= 2)
+        return 1;
+
+    return fibo(n - 1) + fibo(n - 2);
+}
+
+typedef struct
+{
+    unsigned u;
+} Fibo_args;
+
+typedef struct
+{
+    unsigned *pu;
+} Fibo_results;
+
+typedef struct
+{
+    // args
+    Fibo_args args;
+    Fibo_results *pResults;
+
+    // locals
+    unsigned f1;
+    unsigned f2;
+    union
+    {
+        Fibo_results Fibo_results_r;
+    } results;
+
+    pxLoomFrame loomFrame;
+} Fibo_frame;
+
+static Fibo_frame *FiboCreate(pxAlloc *pAlloc, Fibo_results *pResults);
+
+static pxLoomState Fibo_resume(
+    pxLoomContinuation *const pLC, pxLoom *const pLoom)
+{
+    Fibo_frame *const pFrame =
+        PXINTERFACE_STRUCT(pLC, Fibo_frame, loomFrame.pLoomContinuationVt);
+
+    PXLOOMFRAME_BEGIN(&pFrame->loomFrame)
+    {
+        if (pFrame->args.u <= 2)
+        {
+            *pFrame->pResults->pu = 1;
+            PXLOOMFRAME_RETURN(&pFrame->loomFrame);
+        }
+
+        pFrame->results.Fibo_results_r.pu = &pFrame->f1;
+        Fibo_frame *pFiboFrame =
+            FiboCreate(pFrame->loomFrame.pLocalAlloc,
+                       &pFrame->results.Fibo_results_r);
+        PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
+
+        pFrame->results.Fibo_results_r.pu = &pFrame->f2;
+        Fibo_frame *pFiboFrame =
+            FiboCreate(pFrame->loomFrame.pLocalAlloc,
+                       &pFrame->results.Fibo_results_r);
+        PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
+
+        *pFrame->pResults->pu = pFrame->f1 + pFrame->f2;
+        PXLOOMFRAME_RETURN(&pFrame->loomFrame);
+    }
+    PXLOOMFRAME_END(&pFrame->loomFrame)
+}
+
+static const pxLoomContinuationVt Fibo_frameLoomContinuationVt =
+{
+    {
+        offsetof(Fibo_frame, loomFrame.objectStruct.pObjectVt) -
+            offsetof(Fibo_frame, loomFrame.pLoomContinuationVt),
+        pxObject_getInterface,
+    },
+    Fibo_resume,
+};
+
+
+static const pxObjectInterface Fibo_frame_interfaces[] =
+{
+    {pxLoomContinuationName,
+     offsetof(Fibo_frame, loomFrame.objectStruct.pObjectVt) -
+         offsetof(Fibo_frame, loomFrame.pLoomContinuationVt)},
+    {pxObjectName, 0},
+};
+
+static const pxObjectVt Fibo_frameObjectVt =
+{
+    {
+        0,
+        pxObject_getInterface,
+    },
+    pxLoomFrame_destroy,
+    pxObject_cloneForbidden, // TODO
+    sizeof(Fibo_frame_interfaces)/sizeof(Fibo_frame_interfaces[0]),
+    Fibo_frame_interfaces,
+    sizeof(Fibo_frame),
+    offsetof(Fibo_frame, loomFrame.objectStruct),
+    0,
+    NULL,
+};
+
+static Fibo_frame *FiboCreate(pxAlloc *const pAlloc, Fibo_results *pResults)
+{
+    Fibo_frame *const pFrame = PXALLOC_alloc(pAlloc, sizeof(Fibo_frame), 0);
+
+    pxLoomFrameInit(&pFrame->loomFrame, pAlloc,
+                    &Fibo_frameLoomContinuationVt,
+                    &Fibo_frameObjectVt);
+
+    pFrame->pResults = pResults;
+
+    return pFrame;
+}
+
+
 typedef struct
 {
     // locals
     pxLoomSemaphore *pProducerSem;
     pxLoomSemaphore *pConsumerSem;
-    int *pi;
+    unsigned *pu;
+
+    // function results
+    union
+    {
+        Fibo_results Fibo_results_r;
+    } results;
 
     pxLoomFrame loomFrame;
 } Producer_frame;
@@ -59,7 +183,13 @@ static pxLoomState Producer_resume(
 
     PXLOOMFRAME_BEGIN(&pFrame->loomFrame)
     {
-        ++*pFrame->pi;
+        pFrame->results.Fibo_results_r.pu = pFrame->pu;
+        Fibo_frame *const pFiboFrame =
+            FiboCreate(pFrame->loomFrame.pLocalAlloc,
+                       &pFrame->results.Fibo_results_r);
+
+        pFiboFrame->args.u = 0;
+        PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
     }
     PXLOOMFRAME_END(&pFrame->loomFrame)
 }
@@ -100,7 +230,7 @@ static const pxObjectVt Producer_frameObjectVt =
 };
 
 static Producer_frame *ProducerCreate(
-    pxAlloc *const pAlloc, int *pi,
+    pxAlloc *const pAlloc, unsigned *pu,
     pxLoomSemaphore *pProducerSem, pxLoomSemaphore *pConsumerSem)
 {
     Producer_frame *const pFrame =
@@ -112,7 +242,7 @@ static Producer_frame *ProducerCreate(
 
     pFrame->pProducerSem = pProducerSem;
     pFrame->pConsumerSem = pConsumerSem;
-    pFrame->pi = pi;
+    pFrame->pu = pu;
 
     return pFrame;
 }
@@ -123,7 +253,7 @@ typedef struct
     // locals
     pxLoomSemaphore *pProducerSem;
     pxLoomSemaphore *pConsumerSem;
-    int *pi;
+    unsigned *pu;
 
     pxLoomFrame loomFrame;
 } Consumer_frame;
@@ -137,18 +267,21 @@ static pxLoomState Consumer_resume(
     PXLOOMFRAME_BEGIN(&pFrame->loomFrame)
     {
         // create two semaphores
-        pFrame->pProducerSem = pxLoomSemaphoreCreate(pLoom);
-        pFrame->pConsumerSem = pxLoomSemaphoreCreate(pLoom);
+        pFrame->pProducerSem = pxLoomSemaphoreCreate(pLoom, 0);
+        pFrame->pConsumerSem = pxLoomSemaphoreCreate(pLoom, 1);
 
         // create the producer, feeding it the semaphores and the shared int
         Producer_frame *const pProducer =
-            ProducerCreate(pFrame->loomFrame.pLocalAlloc, pFrame->pi,
+            ProducerCreate(pFrame->loomFrame.pLocalAlloc, pFrame->pu,
                            pFrame->pProducerSem, pFrame->pConsumerSem);
 
         // start up the producer
         PXLOOM_createCell(pLoom, &pProducer->loomFrame);
 
         // consume the producer's ints until we hit the last
+        // TODO
+
+        // free the semaphores
         // TODO
     }
     PXLOOMFRAME_END(&pFrame->loomFrame)
@@ -189,12 +322,12 @@ static const pxObjectVt Consumer_frameObjectVt =
     NULL,
 };
 
-static Consumer_frame *ConsumerCreate(pxAlloc *const pAlloc, int *pi)
+static Consumer_frame *ConsumerCreate(pxAlloc *const pAlloc, unsigned *pu)
 {
     Consumer_frame *const pFrame =
         PXALLOC_alloc(pAlloc, sizeof(Consumer_frame), 0);
 
-    pFrame->pi = pi;
+    pFrame->pu = pu;
     pxLoomFrameInit(&pFrame->loomFrame, pAlloc,
                     &Consumer_frameLoomContinuationVt,
                     &Consumer_frameObjectVt);
@@ -209,13 +342,13 @@ static void testpxLoom()
     struct pxAlloc *const pAllocD = pxAllocDebugCreate(pAllocS, NULL);
     pxLoom *const pLoom = pxLoomCreate(pAllocD);
 
-    int i = 0;
-    Consumer_frame *const pConsumer = ConsumerCreate(pAllocD, &i);
+    unsigned u = 0;
+    Consumer_frame *const pConsumer = ConsumerCreate(pAllocD, &u);
 
     PXLOOM_createCell(pLoom, &pConsumer->loomFrame);
     PXLOOM_run(pLoom);
 
-    if (i != 1)
+    if (u != 1)
         fprintf(stderr, "producer did not run\n");
 }
 
