@@ -157,10 +157,10 @@ typedef struct
     pxDllLink link; // link on list of waiters
 } pxLoomSemaphore_Waiter;
 
-#define PXLOOMFRAME_SEMAPHOREGET(pLoomFrame, pLoom, pSem, n) \
-    { pxLoomSemaphore_Waiter _waiter; \
-      if (!((*(pSem)->pVt->get)(pSem, pLoom, &_waiter, n))) \
-          (pLoomFrame)->lineNumber == __LINE__; return PXLOOMSTATE_WAIT; }} case __LINE__: {
+#define PXLOOMFRAME_SEMAPHOREGET(pLoomFrame, pSem, n) \
+    } case __LINE__: {{ pxLoomSemaphore_Waiter _waiter; \
+      if (!((*(pSem)->pVt->get)(pSem, &_waiter, n))) \
+          (pLoomFrame)->lineNumber == __LINE__; return PXLOOMSTATE_WAIT; }
 
     
 
@@ -174,7 +174,7 @@ typedef struct pxLoomSemaphoreVt
 #define PXLOOMSEMAPHORE_put(pI, n) \
     ((*(pI)->pVt->put)(pI, n))
 
-    bool (*get)(struct pxLoomSemaphore *pLS, struct pxLoom *pLoom,
+    bool (*get)(struct pxLoomSemaphore *pLS,
                 pxLoomSemaphore_Waiter *pWaiter, unsigned n);
 // use PXLOOMFRAME_SEMAPHOREGET
 } pxLoomSemaphoreVt;

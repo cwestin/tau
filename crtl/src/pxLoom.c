@@ -112,6 +112,7 @@ typedef struct
     pxObjectStruct objectStruct;
 } pxLoomSemaphore_Local;
 
+
 static void pxLoomSemaphore_Local_put(pxLoomSemaphore *pI, unsigned n)
 {
     pxLoomSemaphore_Local *const pThis =
@@ -121,11 +122,29 @@ static void pxLoomSemaphore_Local_put(pxLoomSemaphore *pI, unsigned n)
     pThis->n += n;
 
     // move waiters from the waiting list to the ready list
-    // TODO
+    // we optimistically schedule all the waiting cells that could run with
+    // the currently available counts
+    unsigned counts = pThis->n;
+    pxDllLink *pNextLink = NULL;
+    for(pxDllLink *pLink = pxDllGetFirst(&pThis->waitingCellList);
+        pLink && counts; pLink = pNextLink)
+    {
+        pNextLink = pxDllGetNext(&pThis->waitingCellList, pLink);
+
+        pxLoomSemaphore_Waiter *const pWaiter =
+            PXDLL_STRUCT(pLink, pxLoomSemaphore_Waiter, link);
+
+        if (pWaiter->n > counts)
+            continue;
+
+        counts -= pWaiter->n;
+        pxDllRemove(pLink);
+        pxDllAddLast(&pThis->pLoom->readyCellList, pLink);
+    }
 }
 
 static bool pxLoomSemaphore_Local_get(
-    pxLoomSemaphore *const pI, pxLoom *const pLoom,
+    pxLoomSemaphore *const pI,
     pxLoomSemaphore_Waiter *const pWaiter, const unsigned n)
 {
     pxLoomSemaphore_Local *const pThis =
@@ -138,10 +157,9 @@ static bool pxLoomSemaphore_Local_get(
         return true;
     }
 
-    pxLoom_s *const pLoom_s = PXINTERFACE_STRUCT(pLoom, pxLoom_s, pLoomVt);
-
+    // add this cell to the waiter list
     pWaiter->n = n;
-    pWaiter->pCell = pLoom_s->pCurrentCell;
+    pWaiter->pCell = pThis->pLoom->pCurrentCell;
     pxDllInit(&pWaiter->link);
     pxDllAddLast(&pThis->waitingCellList, &pWaiter->link);
 
@@ -151,7 +169,8 @@ static bool pxLoomSemaphore_Local_get(
 static const pxLoomSemaphoreVt pxLoomSemaphore_LocalLoomSemaphoreVt =
 {
     {
-        offsetof(pxLoomSemaphore_Local, objectStruct.pObjectVt) - offsetof(pxLoomSemaphore_Local, pLoomSemaphoreVt),
+        offsetof(pxLoomSemaphore_Local, objectStruct.pObjectVt) -
+            offsetof(pxLoomSemaphore_Local, pLoomSemaphoreVt),
         pxObject_getInterface,
     },
     pxLoomSemaphore_Local_put,
