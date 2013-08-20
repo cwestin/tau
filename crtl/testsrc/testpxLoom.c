@@ -167,6 +167,7 @@ typedef struct
     pxLoomSemaphore *pProducerSem;
     pxLoomSemaphore *pConsumerSem;
     unsigned *pu;
+    bool *pIsDone;
 
     // called function results
     union
@@ -192,6 +193,7 @@ static pxLoomState Producer_resume(
 
         pFiboFrame->args.u = 0;
         PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
+        *pFrame->pIsDone = true;
     }
     PXLOOMFRAME_END(&pFrame->loomFrame)
 }
@@ -232,7 +234,7 @@ static const pxObjectVt Producer_frameObjectVt =
 };
 
 static Producer_frame *ProducerCreate(
-    pxAlloc *const pAlloc, unsigned *pu,
+    pxAlloc *const pAlloc, unsigned *pu, bool *pIsDone,
     pxLoomSemaphore *pProducerSem, pxLoomSemaphore *pConsumerSem)
 {
     Producer_frame *const pFrame =
@@ -245,6 +247,7 @@ static Producer_frame *ProducerCreate(
     pFrame->pProducerSem = pProducerSem;
     pFrame->pConsumerSem = pConsumerSem;
     pFrame->pu = pu;
+    pFrame->pIsDone = pIsDone;
 
     return pFrame;
 }
@@ -256,6 +259,7 @@ typedef struct
     pxLoomSemaphore *pProducerSem;
     pxLoomSemaphore *pConsumerSem;
     unsigned *pu;
+    bool isDone;
 
     pxLoomFrame loomFrame;
 } Consumer_frame;
@@ -275,12 +279,16 @@ static pxLoomState Consumer_resume(
         // create the producer, feeding it the semaphores and the shared int
         Producer_frame *const pProducer =
             ProducerCreate(pFrame->loomFrame.pLocalAlloc, pFrame->pu,
+                           &pFrame->isDone,
                            pFrame->pProducerSem, pFrame->pConsumerSem);
 
         // start up the producer
         PXLOOM_createCell(pLoom, &pProducer->loomFrame);
 
         // consume the producer's ints until we hit the last
+        {
+            
+        }
         // TODO
 
         // free the semaphores
