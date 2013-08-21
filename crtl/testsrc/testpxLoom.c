@@ -95,16 +95,20 @@ static pxLoomState Fibo_resume(
         }
 
         pFrame->results.Fibo_results_r.pu = &pFrame->f1;
-        Fibo_frame *pFiboFrame =
-            FiboCreate(pFrame->loomFrame.pLocalAlloc,
-                       &pFrame->results.Fibo_results_r);
-        PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
+        {
+            Fibo_frame *pFiboFrame =
+                FiboCreate(pFrame->loomFrame.pLocalAlloc,
+                           &pFrame->results.Fibo_results_r);
+            PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
+        }
 
         pFrame->results.Fibo_results_r.pu = &pFrame->f2;
-        Fibo_frame *pFiboFrame =
-            FiboCreate(pFrame->loomFrame.pLocalAlloc,
-                       &pFrame->results.Fibo_results_r);
-        PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
+        {
+            Fibo_frame *pFiboFrame =
+                FiboCreate(pFrame->loomFrame.pLocalAlloc,
+                           &pFrame->results.Fibo_results_r);
+            PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
+        }
 
         *pFrame->pResults->pu = pFrame->f1 + pFrame->f2;
         PXLOOMFRAME_RETURN(&pFrame->loomFrame);
@@ -166,6 +170,8 @@ typedef struct
     // locals
     pxLoomSemaphore *pProducerSem;
     pxLoomSemaphore *pConsumerSem;
+    unsigned i;
+#define PRODUCER_N 10
     unsigned *pu;
     bool *pIsDone;
 
@@ -186,13 +192,22 @@ static pxLoomState Producer_resume(
 
     PXLOOMFRAME_BEGIN(&pFrame->loomFrame)
     {
-        pFrame->results.Fibo_results_r.pu = pFrame->pu;
-        Fibo_frame *const pFiboFrame =
-            FiboCreate(pFrame->loomFrame.pLocalAlloc,
-                       &pFrame->results.Fibo_results_r);
+        for(pFrame->i = 0; pFrame->i < PRODUCER_N; ++pFrame->i)
+        {
+            PXLOOMFRAME_SEMAPHOREGET(
+                &pFrame->loomFrame, pLoom, pFrame->pConsumerSem, 1);
 
-        pFiboFrame->args.u = 0;
-        PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
+            pFrame->results.Fibo_results_r.pu = pFrame->pu;
+            Fibo_frame *const pFiboFrame =
+                FiboCreate(pFrame->loomFrame.pLocalAlloc,
+                           &pFrame->results.Fibo_results_r);
+            pFiboFrame->args.u = 0;
+            PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
+
+            *pFrame->pIsDone = false;
+            PXLOOMSEMAPHORE_put(pFrame->pProducerSem, 1);
+        }
+
         *pFrame->pIsDone = true;
     }
     PXLOOMFRAME_END(&pFrame->loomFrame)
@@ -277,22 +292,35 @@ static pxLoomState Consumer_resume(
         pFrame->pConsumerSem = pxLoomSemaphoreCreate(pLoom, 1);
 
         // create the producer, feeding it the semaphores and the shared int
-        Producer_frame *const pProducer =
-            ProducerCreate(pFrame->loomFrame.pLocalAlloc, pFrame->pu,
-                           &pFrame->isDone,
-                           pFrame->pProducerSem, pFrame->pConsumerSem);
+        {
+            Producer_frame *const pProducer =
+                ProducerCreate(pFrame->loomFrame.pLocalAlloc,
+                               pFrame->pu, &pFrame->isDone,
+                               pFrame->pProducerSem, pFrame->pConsumerSem);
 
-        // start up the producer
-        PXLOOM_createCell(pLoom, &pProducer->loomFrame);
+            // start up the producer
+            PXLOOM_createCell(pLoom, &pProducer->loomFrame);
+        }
 
         // consume the producer's ints until we hit the last
+        while(true)
         {
-            
-        }
-        // TODO
+            PXLOOMFRAME_SEMAPHOREGET(
+                &pFrame->loomFrame, pLoom, pFrame->pProducerSem, 1);
 
-        // free the semaphores
-        // TODO
+            if (pFrame->isDone)
+            {
+                PXLOOMFRAME_RETURN(&pFrame->loomFrame);
+
+                // free the semaphores
+                // TODO
+            }
+
+            printf("%u\n", *pFrame->pu);
+
+            PXLOOMSEMAPHORE_put(pFrame->pConsumerSem, 1);
+        }
+
     }
     PXLOOMFRAME_END(&pFrame->loomFrame)
 }

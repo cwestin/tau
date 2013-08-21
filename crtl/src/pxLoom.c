@@ -84,9 +84,23 @@ pxLoomContinuation *pxLoomFrameInit(
 }
 
 
+typedef struct pxLoom_Cell
+{
+    pxLoomFrame *pTopFrame;
+
+    pxDllLink link;
+    union
+    {
+        struct
+        {
+            unsigned n;
+        } semWait;
+    } state;
+} pxLoom_Cell;
+
 typedef struct pxLoom_s
 {
-    struct pxLoom_Cell *pCurrentCell; // only valid during calls to _resume
+    pxLoom_Cell *pCurrentCell; // only valid during calls to _resume
 
     pxDllHead readyCellList;
     pxDllHead waitingCellList;
@@ -122,8 +136,10 @@ static void pxLoomSemaphore_Local_put(pxLoomSemaphore *pI, unsigned n)
     pThis->n += n;
 
     // move waiters from the waiting list to the ready list
-    // we optimistically schedule all the waiting cells that could run with
-    // the currently available counts
+    // We optimistically schedule all the waiting cells that could run with
+    // the currently available counts; if this was a second put, we might
+    // have scheduled too many, but the worst that can happen is they fail
+    // to acquire counts, and are put back on the waiting list.
     unsigned counts = pThis->n;
     pxDllLink *pNextLink = NULL;
     for(pxDllLink *pLink = pxDllGetFirst(&pThis->waitingCellList);
@@ -131,21 +147,22 @@ static void pxLoomSemaphore_Local_put(pxLoomSemaphore *pI, unsigned n)
     {
         pNextLink = pxDllGetNext(&pThis->waitingCellList, pLink);
 
-        pxLoomSemaphore_Waiter *const pWaiter =
-            PXDLL_STRUCT(pLink, pxLoomSemaphore_Waiter, link);
+        pxLoom_Cell *const pCell =
+            PXDLL_STRUCT(pLink, pxLoom_Cell, link);
 
-        if (pWaiter->n > counts)
+        if (pCell->state.semWait.n > counts)
             continue;
 
-        counts -= pWaiter->n;
+        counts -= pCell->state.semWait.n;
+
+        // remove from the waiter list and schedule
         pxDllRemove(pLink);
         pxDllAddLast(&pThis->pLoom->readyCellList, pLink);
     }
 }
 
 static bool pxLoomSemaphore_Local_get(
-    pxLoomSemaphore *const pI,
-    pxLoomSemaphore_Waiter *const pWaiter, const unsigned n)
+    pxLoomSemaphore *const pI, const unsigned n, pxLoom *const pL)
 {
     pxLoomSemaphore_Local *const pThis =
         PXINTERFACE_STRUCT(pI, pxLoomSemaphore_Local, pLoomSemaphoreVt);
@@ -158,10 +175,15 @@ static bool pxLoomSemaphore_Local_get(
     }
 
     // add this cell to the waiter list
-    pWaiter->n = n;
-    pWaiter->pCell = pThis->pLoom->pCurrentCell;
-    pxDllInit(&pWaiter->link);
-    pxDllAddLast(&pThis->waitingCellList, &pWaiter->link);
+    pxLoom_s *const pLoom = PXINTERFACE_STRUCT(pL, pxLoom_s, pLoomVt);
+    pxLoom_Cell *const pCell = pLoom->pCurrentCell;
+
+    // remove the cell from the readyCellList
+    pxDllRemove(&pCell->link);
+
+    // set this cell up to wait on this semaphore
+    pCell->state.semWait.n = n;
+    pxDllAddLast(&pThis->waitingCellList, &pCell->link);
 
     return false;
 }
@@ -210,12 +232,6 @@ static const pxObjectVt pxLoomSemaphore_LocalObjectVt =
     NULL,
 };
 
-typedef struct pxLoom_Cell
-{
-    pxLoomFrame *pTopFrame;
-
-    pxDllLink link;
-} pxLoom_Cell;
 
 pxLoomSemaphore *pxLoomSemaphoreCreate(pxLoom *pI, unsigned n)
 {
@@ -293,7 +309,7 @@ static void pxLoom_run(pxLoom *const pI)
 
         case PXLOOMSTATE_WAIT:
             pxDllRemove(pLink);
-            pxDllAddLast(&pThis->waitingCellList, pLink);
+            pxDllAddAfter(&pThis->waitingCellList, pLink);
             break;
 
         default:
@@ -363,10 +379,14 @@ pxLoom *pxLoomCreate(pxAlloc *pAlloc)
     return (pxLoom *)&pThis->pLoomVt;
 }
 
-void pxLoomCall(pxLoom *pI, pxLoomFrame *pFrame)
+void pxLoomCall(pxLoom *pI,
+                pxLoomFrame *pFrame, unsigned line,
+                pxLoomFrame *pCallFrame)
 {
     pxLoom_s *const pThis = PXINTERFACE_STRUCT(pI, pxLoom_s, pLoomVt);
 
-    pFrame->pPreviousFrame = pThis->pCurrentCell->pTopFrame;
-    pThis->pCurrentCell->pTopFrame = pFrame;
+    pFrame->lineNumber = line;
+
+    pCallFrame->pPreviousFrame = pThis->pCurrentCell->pTopFrame;
+    pThis->pCurrentCell->pTopFrame = pCallFrame;
 }

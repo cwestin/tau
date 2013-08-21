@@ -131,38 +131,29 @@ pxLoomContinuation *pxLoomFrameInit(
 void pxLoomFrame_destroy(struct pxObject *pI);
 
 #define PXLOOMFRAME_BEGIN(pLoomFrame) \
-    switch((pLoomFrame)->lineNumber) { case 0: {
+    switch((pLoomFrame)->lineNumber) { case 0:
 
 #define PXLOOMFRAME_END(pLoomFrame) \
-    break; } \
+    break; \
     default: pxExit("invalid line number (%d) at %s:%d\n", \
                     (pLoomFrame)->lineNumber, __FILE__, __LINE__); \
     break; } return PXLOOMSTATE_RETURN;
 
 
 #define PXLOOMFRAME_RETURN(pLoomFrame) \
-    (pLoomFrame)->lineNumber = INT_MAX; \
-    return PXLOOMSTATE_RETURN;
+    (pLoomFrame)->lineNumber = INT_MAX; return PXLOOMSTATE_RETURN;
 
 
 #define PXLOOMFRAME_CALL(pLoomFrame, pLoom, pCallFrame) \
-    pxLoomCall(pLoom, pCallFrame); \
-    (pLoomFrame)->lineNumber = __LINE__; return PXLOOMSTATE_CALL; } case __LINE__: {
+    pxLoomCall(pLoom, pLoomFrame, __LINE__, pCallFrame); \
+    return PXLOOMSTATE_CALL; case __LINE__:
 
 
-typedef struct
-{
-    unsigned n; // how many counts this waiter requires
-    struct pxLoom_Cell *pCell; // the cell that is waiting
-    pxDllLink link; // link on list of waiters
-} pxLoomSemaphore_Waiter;
+#define PXLOOMFRAME_SEMAPHOREGET(pLoomFrame, pLoom, pSem, n)    \
+    case __LINE__: { \
+        if (!((*(pSem)->pVt->get)(pSem, n, pLoom))) { \
+            (pLoomFrame)->lineNumber = __LINE__; return PXLOOMSTATE_WAIT; }}
 
-#define PXLOOMFRAME_SEMAPHOREGET(pLoomFrame, pSem, n) \
-    } case __LINE__: {{ pxLoomSemaphore_Waiter _waiter; \
-      if (!((*(pSem)->pVt->get)(pSem, &_waiter, n))) \
-          (pLoomFrame)->lineNumber == __LINE__; return PXLOOMSTATE_WAIT; }
-
-    
 
 
 struct pxLoomSemaphore;
@@ -174,8 +165,7 @@ typedef struct pxLoomSemaphoreVt
 #define PXLOOMSEMAPHORE_put(pI, n) \
     ((*(pI)->pVt->put)(pI, n))
 
-    bool (*get)(struct pxLoomSemaphore *pLS,
-                pxLoomSemaphore_Waiter *pWaiter, unsigned n);
+    bool (*get)(struct pxLoomSemaphore *pLS, unsigned n, struct pxLoom *pLoom);
 // use PXLOOMFRAME_SEMAPHOREGET
 } pxLoomSemaphoreVt;
 
@@ -223,6 +213,8 @@ pxLoom *pxLoomCreate(struct pxAlloc *pAlloc);
 /*
   For internal use by PXLOOMFRAME_CALL
  */
-void pxLoomCall(pxLoom *pLoom, pxLoomFrame *pFrame);
+void pxLoomCall(pxLoom *pLoom,
+                pxLoomFrame *pFrame, unsigned line,
+                pxLoomFrame *pCallFrame);
 
 #endif // PXLOOM_H
