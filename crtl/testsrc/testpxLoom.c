@@ -312,26 +312,24 @@ static pxLoomState Consumer_resume(
             PXLOOMFRAME_SEMAPHOREGET(
                 &pFrame->loomFrame, pFrame->pProducerSem, 1);
 
-            if (pFrame->isDone)
-            {
-                PXLOOMFRAME_RETURN(&pFrame->loomFrame);
-
-                // free the semaphores
-                // TODO
-            }
-
-            printf("%d: %u\n", pFrame->count, *pFrame->pu); // TODO
-
             if (fibo(pFrame->count) != *pFrame->pu)
                 fprintf(stderr, "fibo value incorrect (%d, %u)\n",
                         pFrame->count, *pFrame->pu);
 
             ++pFrame->count;
+            if (pFrame->isDone)
+            {
+                if (pFrame->count != PRODUCER_N)
+                    fprintf(stderr, "didn't generate enough numbers\n");
+
+                // free the semaphores
+                // TODO
+
+                PXLOOMFRAME_RETURN(&pFrame->loomFrame);
+            }
+
             PXLOOMSEMAPHORE_put(pFrame->pConsumerSem, 1);
         }
-
-        if (pFrame->count != PRODUCER_N)
-            fprintf(stderr, "didn't generate enough numbers\n");
 
     }
     PXLOOMFRAME_END(&pFrame->loomFrame)
