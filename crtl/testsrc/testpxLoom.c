@@ -320,11 +320,18 @@ static pxLoomState Consumer_resume(
                 // TODO
             }
 
-            printf("%d: %u\n", pFrame->count, *pFrame->pu);
-            ++pFrame->count;
+            printf("%d: %u\n", pFrame->count, *pFrame->pu); // TODO
 
+            if (fibo(pFrame->count) != *pFrame->pu)
+                fprintf(stderr, "fibo value incorrect (%d, %u)\n",
+                        pFrame->count, *pFrame->pu);
+
+            ++pFrame->count;
             PXLOOMSEMAPHORE_put(pFrame->pConsumerSem, 1);
         }
+
+        if (pFrame->count != PRODUCER_N)
+            fprintf(stderr, "didn't generate enough numbers\n");
 
     }
     PXLOOMFRAME_END(&pFrame->loomFrame)
