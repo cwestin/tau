@@ -149,9 +149,9 @@ void pxLoomFrame_destroy(struct pxObject *pI);
     return PXLOOMSTATE_CALL; case __LINE__:
 
 
-#define PXLOOMFRAME_SEMAPHOREGET(pLoomFrame, pLoom, pSem, n)    \
+#define PXLOOMFRAME_SEMAPHOREGET(pLoomFrame, pSem, n)    \
     case __LINE__: { \
-        if (!((*(pSem)->pVt->get)(pSem, n, pLoom))) { \
+        if (!((*(pSem)->pVt->get)(pSem, n))) { \
             (pLoomFrame)->lineNumber = __LINE__; return PXLOOMSTATE_WAIT; }}
 
 
@@ -165,7 +165,7 @@ typedef struct pxLoomSemaphoreVt
 #define PXLOOMSEMAPHORE_put(pI, n) \
     ((*(pI)->pVt->put)(pI, n))
 
-    bool (*get)(struct pxLoomSemaphore *pLS, unsigned n, struct pxLoom *pLoom);
+    bool (*get)(struct pxLoomSemaphore *pLS, unsigned n);
 // use PXLOOMFRAME_SEMAPHOREGET
 } pxLoomSemaphoreVt;
 

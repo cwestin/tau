@@ -162,7 +162,7 @@ static void pxLoomSemaphore_Local_put(pxLoomSemaphore *pI, unsigned n)
 }
 
 static bool pxLoomSemaphore_Local_get(
-    pxLoomSemaphore *const pI, const unsigned n, pxLoom *const pL)
+    pxLoomSemaphore *const pI, const unsigned n)
 {
     pxLoomSemaphore_Local *const pThis =
         PXINTERFACE_STRUCT(pI, pxLoomSemaphore_Local, pLoomSemaphoreVt);
@@ -175,8 +175,7 @@ static bool pxLoomSemaphore_Local_get(
     }
 
     // add this cell to the waiter list
-    pxLoom_s *const pLoom = PXINTERFACE_STRUCT(pL, pxLoom_s, pLoomVt);
-    pxLoom_Cell *const pCell = pLoom->pCurrentCell;
+    pxLoom_Cell *const pCell = pThis->pLoom->pCurrentCell;
 
     // remove the cell from the readyCellList
     pxDllRemove(&pCell->link);
@@ -308,8 +307,8 @@ static void pxLoom_run(pxLoom *const pI)
             break;
 
         case PXLOOMSTATE_WAIT:
-            pxDllRemove(pLink);
-            pxDllAddAfter(&pThis->waitingCellList, pLink);
+            // nothing to do: the element that caused the wait
+            // will have moved this to its waiter list
             break;
 
         default:

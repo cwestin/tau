@@ -43,7 +43,7 @@
 
 static unsigned fibo(unsigned n)
 {
-    if (n <= 2)
+    if (n <= 1)
         return 1;
 
     return fibo(n - 1) + fibo(n - 2);
@@ -88,7 +88,7 @@ static pxLoomState Fibo_resume(
 
     PXLOOMFRAME_BEGIN(&pFrame->loomFrame)
     {
-        if (pFrame->args.u <= 2)
+        if (pFrame->args.u <= 1)
         {
             *pFrame->pResults->pu = 1;
             PXLOOMFRAME_RETURN(&pFrame->loomFrame);
@@ -99,6 +99,7 @@ static pxLoomState Fibo_resume(
             Fibo_frame *pFiboFrame =
                 FiboCreate(pFrame->loomFrame.pLocalAlloc,
                            &pFrame->results.Fibo_results_r);
+            pFiboFrame->args.u = pFrame->args.u - 1;
             PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
         }
 
@@ -107,6 +108,7 @@ static pxLoomState Fibo_resume(
             Fibo_frame *pFiboFrame =
                 FiboCreate(pFrame->loomFrame.pLocalAlloc,
                            &pFrame->results.Fibo_results_r);
+            pFiboFrame->args.u = pFrame->args.u - 2;
             PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
         }
 
@@ -195,13 +197,13 @@ static pxLoomState Producer_resume(
         for(pFrame->i = 0; pFrame->i < PRODUCER_N; ++pFrame->i)
         {
             PXLOOMFRAME_SEMAPHOREGET(
-                &pFrame->loomFrame, pLoom, pFrame->pConsumerSem, 1);
+                &pFrame->loomFrame, pFrame->pConsumerSem, 1);
 
             pFrame->results.Fibo_results_r.pu = pFrame->pu;
             Fibo_frame *const pFiboFrame =
                 FiboCreate(pFrame->loomFrame.pLocalAlloc,
                            &pFrame->results.Fibo_results_r);
-            pFiboFrame->args.u = 0;
+            pFiboFrame->args.u = pFrame->i;
             PXLOOMFRAME_CALL(&pFrame->loomFrame, pLoom, &pFiboFrame->loomFrame);
 
             *pFrame->pIsDone = false;
@@ -275,6 +277,7 @@ typedef struct
     pxLoomSemaphore *pConsumerSem;
     unsigned *pu;
     bool isDone;
+    int count;
 
     pxLoomFrame loomFrame;
 } Consumer_frame;
@@ -303,10 +306,11 @@ static pxLoomState Consumer_resume(
         }
 
         // consume the producer's ints until we hit the last
+        pFrame->count = 0;
         while(true)
         {
             PXLOOMFRAME_SEMAPHOREGET(
-                &pFrame->loomFrame, pLoom, pFrame->pProducerSem, 1);
+                &pFrame->loomFrame, pFrame->pProducerSem, 1);
 
             if (pFrame->isDone)
             {
@@ -316,7 +320,8 @@ static pxLoomState Consumer_resume(
                 // TODO
             }
 
-            printf("%u\n", *pFrame->pu);
+            printf("%d: %u\n", pFrame->count, *pFrame->pu);
+            ++pFrame->count;
 
             PXLOOMSEMAPHORE_put(pFrame->pConsumerSem, 1);
         }
@@ -386,7 +391,7 @@ static void testpxLoom()
     PXLOOM_createCell(pLoom, &pConsumer->loomFrame);
     PXLOOM_run(pLoom);
 
-    if (u != 1)
+    if (u == 0)
         fprintf(stderr, "producer did not run\n");
 }
 
