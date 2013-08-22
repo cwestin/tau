@@ -398,6 +398,9 @@ static void testpxLoom()
 
     if (u == 0)
         fprintf(stderr, "producer did not run\n");
+
+    // free the loom and check the debug allocator
+    // TODO
 }
 
 int main(void)

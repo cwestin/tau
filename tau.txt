@@ -1,3 +1,14 @@
+(*) Implement pxLoom
+- clean up testpxLoom TODOs
+- implement a monitor
+- select from one of multiple channels
+
+(*) Implement pxChannel
+- need abstract interface
+- need concrete class for intra-loom communication
+- need concrete class for iter-loom communication
+  - will use pthreads primitives for synchronization?
+
 (*) Define file headers
 - Add throughout (in progress)
 - set up for doxygen (early experiments not great; considering)
@@ -12,19 +23,6 @@
 - requires cloning objects to clone the key into the right arena
 
 (*) makemake to handle transitive dependencies
-
-(*) Implement pxLoom
-- calls to functions
-  - Fibo_frame
-- semaphores for producer/consumers, so channels work
-- Test producer/consumer pattern
-- select from one of multiple channels
-
-(*) Implement pxChannel
-- need abstract interface
-- need concrete class for intra-loom communication
-- need concrete class for iter-loom communication
-  - will use pthreads primitives for synchronization?
 
 (*) make pxLoom work across threads
 - pthreads, or apr?
