@@ -155,8 +155,10 @@ struct pxLoom;
 
 /*
   Each loom-executable function's stack frame is modeled as an implementation
-  of the continuation interface. The implementation of this interface is
-  provided by pxLoom.
+  of the continuation interface. The loom-executable function is implicitly
+  provided to the loom through the implementation of this interface. In other
+  words, the loom-executable function is the _resume method on this interface,
+  and must be provided.
  */
 struct pxLoomContinuation;
 typedef struct pxLoomContinuationVt
@@ -208,10 +210,10 @@ typedef struct pxLoomFrame
   This should be called on the stack frame after it has been allocated, but
   before the first call the the loom-executable function.
 
-  @param pLoomFrame pointer to the common part to initialize
+  @param pLoomFrame pointer to the common stack frame to initialize
   @param pAlloc the allocator that was used to allocate the stack frame
-  @param pLoomContinuation
-  @param pLoomObjectVt
+  @param pLoomContinuation pointer to the continuation interface implementation
+  @param pLoomObjectVt pointer to the continutation object's Object implementation
  */
 pxLoomContinuation *pxLoomFrameInit(
     pxLoomFrame *pLoomFrame, struct pxAlloc *pAlloc,
@@ -221,9 +223,11 @@ pxLoomContinuation *pxLoomFrameInit(
 /*
    Canned implementation of pxObject_destroy for loom frames.
 
-   Uses the local allocator to deallocate the frame
+   Uses the local allocator to deallocate the frame. Use this implementation of
+   Object.destroy in your continuation object's Object interface implementation.
  */
 void pxLoomFrame_destroy(struct pxObject *pI);
+
 
 /*
   The following are macros that provide the line number saving and use
@@ -269,18 +273,65 @@ void pxLoomFrame_destroy(struct pxObject *pI);
     return PXLOOMSTATE_CALL; case __LINE__:
 
 
+/*
+  Below are definitions for Dijkstra-style counting semaphores that operate in
+  the context of a loom.
+
+  The acquisition macro yields in ways similar to the _CALL and _RETURN macros
+  above, but sometimes has to retry acquisitions because the availability of
+  the semaphore may have changed since the time the loom thread was scheduled
+  to run (under the belief that the required counts would be available). This
+  is why the case label appears first, rather than last.
+
+  Note that releasing semaphore counts is *not* a yielding operation, and
+  does not have to operate this way. The put operation is on the loom semaphore
+  interface defined below.
+ */
+
+/**
+  Acquire a loom semaphore.
+
+  Prior to use, the target semaphore must have been created. The function will
+  not advance past this point until it can obtain the specified counts from the
+  semaphore.
+
+  @params n the number of semaphore counts to obtain
+ */
 #define PXLOOMFRAME_SEMAPHOREGET(pLoomFrame, pSem, n)    \
     case __LINE__: { \
         if (!((*(pSem)->pVt->get)(pSem, n))) { \
             (pLoomFrame)->lineNumber = __LINE__; return PXLOOMSTATE_WAIT; }}
 
 
+/** @class pxLoomSemaphore
+  The loom semaphore interface.
 
+  The implementation of this interface is provided by pxLoom; create semaphores
+  using pxLoomSemaphoreCreate().
+
+  While this is not going to be exported into tau space, it is exposed as
+  an abstract interface because I expect there will be two implementations of
+  it: one local, for a semaphore that is *local to this loom,*, and one for
+  semaphores that are owned by another loom (that is running in another real
+  OS thread). Such communication will require more than just yielding locally,
+  since real mutual exclusion will have to be used to pass data between
+  OS-level threads. The design of that is still TBD, but I imagine it will
+  involve some form of messaging that will still yield locally so that other
+  local loom threads can continue to run. External I/O will do something
+  similar, leading to what looks like blocking I/O from a loom function's
+  perspective actually being Node.js-style asynchronous I/O under the covers.
+ */
 struct pxLoomSemaphore;
 typedef struct pxLoomSemaphoreVt
 {
     pxInterfaceVt interfaceVt;
 
+    /** @fn put
+      Add counts to the semaphore.
+
+      @param pLS pointer to the loom semaphore
+      @param n the number of counts to add
+     */
     void (*put)(struct pxLoomSemaphore *pLS, unsigned n);
 #define PXLOOMSEMAPHORE_put(pI, n) \
     ((*(pI)->pVt->put)(pI, n))
@@ -306,15 +357,34 @@ extern const char pxLoomSemaphoreName[];
 pxLoomSemaphore *pxLoomSemaphoreCreate(struct pxLoom *pLoom, unsigned n);
 
 
+/** @class pxLoom
+  The Loom interface.
+
+  This provides access to all of the Loom's functionality.
+ */
 struct pxLoom;
 typedef struct pxLoomVt
 {
     pxInterfaceVt interfaceVt;
 
+    /** @fn createCell
+      Create a new cell (green-thread) which will execute the given
+      frame/continuation.
+
+      @param pI the loom/this
+      @param pFrame pointer to the initialized stack frame/continuation
+     */
     void (*createCell)(struct pxLoom *pI, pxLoomFrame *pFrame);
 #define PXLOOM_createCell(pI, pFrame) \
     ((*(pI)->pVt->createCell)(pI, pFrame))
 
+    /** @fn run
+      Execute the loom.
+
+      This runs all executable loom functions until there are none left.
+
+      @param pI the loom/this
+     */
     void (*run)(struct pxLoom *pI);
 #define PXLOOM_run(pI) \
     ((*(pI)->pVt->run)(pI))
@@ -328,10 +398,21 @@ typedef struct pxLoom
 extern const char pxLoomName[];
 
 
+/**
+  Create a loom.
+
+  @param pAlloc the allocator to create the loom and its data structures in
+ */
 pxLoom *pxLoomCreate(struct pxAlloc *pAlloc);
 
 /*
-  For internal use by PXLOOMFRAME_CALL
+private:
+  For internal use by the PXLOOMFRAME_CALL macro.
+
+  @param pLoom the loom
+  @param pFrame pointer to the current stack frame
+  @param line the current line number (i.e., __LINE__) in the current execution
+  @param pCallFrame pointer to the continuation stack frame to be called
  */
 void pxLoomCall(pxLoom *pLoom,
                 pxLoomFrame *pFrame, unsigned line,

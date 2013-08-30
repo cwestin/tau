@@ -8,6 +8,7 @@ The tour is really more of a cross-reference that points to the classes that
 will be used to implement certain high-level features; hopefullly this is more
 useful than just seeing a directory with a bunch of files in it.
 
+
 Some Conventions
 ----------------
 
@@ -19,10 +20,11 @@ many things will be.
 
 Interfaces and polymorphism are great tools. Without direct support in C,
 hand-rolled C++-style vtables are used to obtain these effects. This boils
-down to objects having a pointer to a structure full of function pointers.
-The structure declaration represents the abstract class' methods. However, there
-are some key differences from what you might expect in a straight C++
-implementation:
+down to objects having a pointer to a structure full of function pointers, and
+always passing a pointer to the vtable pointer as the first "this" argument
+to methods. The vtable structure declaration represents the abstract class'
+methods. However, there are some key differences from what you might expect in
+a straight C++ implementation:
 * For objects I expect to export into tau space, compilation independence is
   strictly maintained by only publishing the abstract class in a header file.
 * Some vtables contain virtual functions and *virtual data* (a feature I've
@@ -40,6 +42,10 @@ implementation:
 * The CRTL is implemented in tau/crtl, where you'll find include and src
   directories, as well as a testsrc directory that contains unit tests you
   can look at to see how various things work in isolation.
+* The implementation currently uses a mongrel version of Javadoc-style
+  documentation. I'm experimenting with doxygen's ability to produce something
+  useful from this.
+
 
 Features and their Support
 --------------------------
@@ -117,3 +123,9 @@ which have been implemented so far.
 * Erlang-style Processes
   pxLoom provides support for this. pxLoom fakes co-routines in C; see the
   header file for more detail.
+
+  One note here is that tau will *not* map its own cells/processes/threads on
+  to OS-level threads. The loom provides a means to implement green threads.
+  I expect to run one loom per OS level thread in order to have green threads
+  running on each OS-level thread. Ideally, in the final byte-code interpreter,
+  there will only be one OS-level thread per core on the host.
