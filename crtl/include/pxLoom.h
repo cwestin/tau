@@ -177,13 +177,19 @@ extern const char pxLoomContinuationName[];
 
 
 /*
-  pxLoomFrame represents a stack frame for a function call.
+  pxLoomFrame represents a stack frame for a loom-executable function call.
 
   In order to treat functions as first class objects, and to support closures,
   we declare that stack frames are objects which serve to hold the closure
   content. This allows us to use the existing pxObject mechanics for cloning
   stack frames if the green thread (or a function closure) needs to be garbage
   collected.
+
+  Each loom-executable function must have an associated stack frame structure
+  that contains its state (see the example at the top of this file in order
+  to understand why this is required in order to preserve that state across
+  the function call's save-and-restore). Embed this structure inside your
+  stack frame structure, and initialize it by calling pxLoomFrameInit() (below).
  */
 typedef struct pxLoomFrame
 {
@@ -223,22 +229,41 @@ void pxLoomFrame_destroy(struct pxObject *pI);
   The following are macros that provide the line number saving and use
   mechanics demonstrated in the example at the top of this file. Use these
   in the implementation of loom-executable functions so that their state can
-  be saved and restored. For examples, see testsrc/testpxLoom.c.
+  be saved and restored. For examples of usage, see testsrc/testpxLoom.c.
+ */
+
+/**
+  Introduces a loom-executable function's body.
  */
 #define PXLOOMFRAME_BEGIN(pLoomFrame) \
     switch((pLoomFrame)->lineNumber) { case 0:
 
+/**
+  Concludes a loom-executable function's body.
+ */
 #define PXLOOMFRAME_END(pLoomFrame) \
     break; \
     default: pxExit("invalid line number (%d) at %s:%d\n", \
                     (pLoomFrame)->lineNumber, __FILE__, __LINE__); \
     break; } return PXLOOMSTATE_RETURN;
 
+/**
+  Return from a loom-executable function in the same way the "return" statement
+  works in C.
 
+  State for the function is marked as "completed," and the function may not be
+  re-entered.
+ */
 #define PXLOOMFRAME_RETURN(pLoomFrame) \
     (pLoomFrame)->lineNumber = INT_MAX; return PXLOOMSTATE_RETURN;
 
+/**
+  Invoke a loom-executable function from within another loom-executable
+  function.
 
+  Prior to this, the stack frame for the target function must have been
+  created and initialized.
+ */
 #define PXLOOMFRAME_CALL(pLoomFrame, pLoom, pCallFrame) \
     pxLoomCall(pLoom, pLoomFrame, __LINE__, pCallFrame); \
     return PXLOOMSTATE_CALL; case __LINE__:
