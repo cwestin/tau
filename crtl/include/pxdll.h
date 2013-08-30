@@ -23,6 +23,8 @@ Functions in this file manage the list strictly through the pointers in the
 embedded membership. A macro with an offsetof() expression is then used to
 recover the pointer to the original object from a pointer to the membership
 structure.
+
+For some examples of use, see the unit test in testsrc/testpxDll.c.
  */
 
 #ifndef PXDLL_H
