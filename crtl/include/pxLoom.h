@@ -14,7 +14,81 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  */
-/** @file pxLoom.h */
+/** @file pxLoom.h
+  The loom provides a means to fake thread-like co-routines in C. This includes
+  synchronization primitives such as counting semaphores.
+
+  The loom fakes co-routines using some preprocessor macro voodoo. However, the
+  principle behind how this works is pretty simple.
+
+  In a multi-processing operating system, context switching basically works
+  by having a way to save away the current processes' state when the process is
+  to be "unscheduled." The next process to run has its previous state restored
+  (from the same saving process applied to it at some pointer earlier in time).
+
+  Within a C switch statement, C doesn't care about the relative scope of case
+  labels. These are treated like labels, and can appear anywhere within the
+  switch. In particular, I can write something like this:
+
+  switch(some_condition)
+  {
+  case A:
+    for(i = 0; i < 10; ++i)
+    {
+      foo(...);
+  case B:
+      bar(...);
+  case C:
+      baz(...);
+    }
+  }
+
+  Note how the case labels for B and C appear inside the for() loop's
+  statement-block.
+
+  In general, this looks like a crazy thing to do that will result in a
+  non-sensical program, but it can be used to great effect. I can get a little
+  help from the preprocessor and do things like this:
+
+  void yielding_function(State *pState)
+  {
+    switch(pState->lineNumber)
+    {
+    case 0: // never executed before
+      for(pState->i = 0; pState->i < 10; ++pState->i)
+      {
+          foo(...);
+          if (some_condition) { pState->lineNumber = __LINE__; return; } case __LINE__:
+          bar(...);
+          if (some_condition) { pState->lineNumber = __LINE__; return; } case __LINE__:
+          baz(...);
+      }
+    }
+  }
+
+  I've emulated the context-switching process: when I want to yield, I can save
+  away the line number, and when I re-enter this function (with the preserved
+  state), I will return to where execution left off.
+
+  Note that for this to work, I cannot put any state in local variables --
+  these will come and go across invocations of the C function. I must keep
+  the higher-level stack and its associated locals in the State.
+
+  In order to call other functions that can yield in this way, I build up a
+  stack of States, each of which maintains the common stack frame state
+  (analogous to the PC, or program counter at the assembly language level),
+  as well as any function-specific state (such as "local variables" in the
+  higher-level tau space we're representing here).
+
+  Care must be taken not to use a nested switch, as that will assume ownership
+  of any case labels that appear within it.
+
+  The macros and functions in this file provide a realization of the above
+  principle, using terminology from the multi-threaded programming world. It
+  is not expected that users will write code this way, but that the initial
+  language experiments will generate C code using this in order to emulate
+  tau's green threads and behavior.
+ */
 
 #ifndef PXLOOM_H
 #define PXLOOM_H
@@ -79,6 +153,11 @@ typedef int pxLoomState;
 
 struct pxLoom;
 
+/*
+  Each loom-executable function's stack frame is modeled as an implementation
+  of the continuation interface. The implementation of this interface is
+  provided by pxLoom.
+ */
 struct pxLoomContinuation;
 typedef struct pxLoomContinuationVt
 {
@@ -117,19 +196,35 @@ typedef struct pxLoomFrame
     pxObjectStruct objectStruct;
 } pxLoomFrame;
 
+/** @fn pxLoomFrameInit
+  Initialize the common part of a loom-executable function's stack frame.
 
+  This should be called on the stack frame after it has been allocated, but
+  before the first call the the loom-executable function.
+
+  @param pLoomFrame pointer to the common part to initialize
+  @param pAlloc the allocator that was used to allocate the stack frame
+  @param pLoomContinuation
+  @param pLoomObjectVt
+ */
 pxLoomContinuation *pxLoomFrameInit(
     pxLoomFrame *pLoomFrame, struct pxAlloc *pAlloc,
     const pxLoomContinuationVt *pLoomContinuationVt,
     const pxObjectVt *pLoomObjectVt);
 
-/**
-   Canned implementation of pxObject_destroy for loom frames
+/*
+   Canned implementation of pxObject_destroy for loom frames.
 
    Uses the local allocator to deallocate the frame
  */
 void pxLoomFrame_destroy(struct pxObject *pI);
 
+/*
+  The following are macros that provide the line number saving and use
+  mechanics demonstrated in the example at the top of this file. Use these
+  in the implementation of loom-executable functions so that their state can
+  be saved and restored. For examples, see testsrc/testpxLoom.c.
+ */
 #define PXLOOMFRAME_BEGIN(pLoomFrame) \
     switch((pLoomFrame)->lineNumber) { case 0:
 
