@@ -89,7 +89,7 @@ static void testpxHashMapLocal()
     if (PXHASHMAP_isEmpty(pHashMap))
         fprintf(stderr, "hashmap shouldn't be empty, but is (%d)\n", __LINE__);
 
-    // TODO
+    // TODO remove items from the map one by one and test
 
     // clean up
     pxObject *const pAllocObject = PXINTERFACE_getInterface(pAlloc, pxObject);

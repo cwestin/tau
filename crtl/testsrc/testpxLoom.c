@@ -322,8 +322,7 @@ static pxLoomState Consumer_resume(
                 if (pFrame->count != PRODUCER_N)
                     fprintf(stderr, "didn't generate enough numbers\n");
 
-                // free the semaphores
-                // TODO
+                // TODO free the semaphores
 
                 PXLOOMFRAME_RETURN(&pFrame->loomFrame);
             }
@@ -400,7 +399,7 @@ static void testpxLoom()
         fprintf(stderr, "producer did not run\n");
 
     // free the loom and check the debug allocator
-    // TODO
+    // TODO free the loom and check the debug allocator
 }
 
 int main(void)
