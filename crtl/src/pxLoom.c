@@ -216,6 +216,10 @@ static void pxLoomSemaphore_Local_destroy(pxObject *pI)
         pxExit("pxLoomSemaphore_Local_destroy: there are waiters\n");
 
     pxObject_destroy(pI);
+    pxFree *const pFree =
+        PXINTERFACE_getInterface(pThis->pLoom->pAlloc, pxFree);
+    if (pFree)
+        PXFREE_free(pFree, pThis);
 }
 
 static const pxObjectVt pxLoomSemaphore_LocalObjectVt =
@@ -351,13 +355,17 @@ static const pxObjectInterface pxLoom_interfaces[] =
 
 static void pxLoom_destroy(pxObject *pI)
 {
-/*
     pxLoom_s *const pThis =
         PXINTERFACE_STRUCT(pI, pxLoom_s, objectStruct.pObjectVt);
-*/
 
-    pxExit("pxLoom_destroy: unimplemented\n");
+    unsigned cellCount = pxDllCount(&pThis->cellList);
+    if (cellCount)
+        pxExit("pxLoom_destroy: there are remaining cells\n");
+
+    pxFree *const pFree = PXINTERFACE_getInterface(pThis->pAlloc, pxFree);
     pxObject_destroy(pI);
+    if (pFree)
+        PXFREE_free(pFree, pThis);
 }
 
 static const pxObjectVt pxLoomObjectVt =

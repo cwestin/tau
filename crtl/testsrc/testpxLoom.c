@@ -435,7 +435,7 @@ static void testpxLoom()
     Consumer_frame *const pConsumer = ConsumerCreate(pAllocD, &u);
 
     PXLOOM_createCell(pLoom, &pConsumer->loomFrame);
-    unsigned remainingCells = PXLOOM_run(pLoom);
+    const unsigned remainingCells = PXLOOM_run(pLoom);
 
     if (u == 0)
         fprintf(stderr, "producer did not run\n");
@@ -443,7 +443,15 @@ static void testpxLoom()
     if (remainingCells)
         fprintf(stderr, "there are unfinished cells\n");
 
-    // TODO free the loom and check the debug allocator
+    // free the loom and check the debug allocator
+    pxObject *const pObject = PXINTERFACE_getInterface(pLoom, pxObject);
+    PXOBJECT_destroy(pObject);
+    pxAllocDebug *const pAllocDebug =
+        PXINTERFACE_getInterface(pAllocD, pxAllocDebug);
+    const unsigned remainingPieces = PXALLOCDEBUG_countPieces(pAllocDebug);
+    if (remainingPieces)
+        fprintf(stderr, "there is still memory in use (%u pieces)\n",
+                remainingPieces);
 }
 
 int main(void)

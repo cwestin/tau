@@ -144,10 +144,18 @@ static unsigned pxAllocDebug_countPieces(pxAllocDebug *pAllocDebug)
     pxAllocDebug_s *const pThis =
         PXINTERFACE_STRUCT(pAllocDebug, pxAllocDebug_s, pAllocDebugVt);
 
+    unsigned garbage = 0; // this is just to avoid pThis being unused below
     unsigned count = 0;
     for(pxDllLink *pLink = pxDllGetFirst(&pThis->list); pLink;
         pLink = pxDllGetNext(&pThis->list, pLink))
     {
+        // TODO deal with unused variable warning
+        pxAllocDebug_Item *const pItem =
+            PXDLL_STRUCT(pLink, pxAllocDebug_Item, link);
+
+        // vacuous body allows a human debugger to examine these pieces
+        garbage += pItem->sequence;
+
         ++count;
     }
 

@@ -1,13 +1,19 @@
-(*) Implement pxLoom
-- clean up testpxLoom TODOs
-- implement a monitor
-- select from one of multiple channels
-
 (*) Implement pxChannel
 - need abstract interface
 - need concrete class for intra-loom communication
 - need concrete class for iter-loom communication
   - will use pthreads primitives for synchronization?
+
+(*) undo the excessive compilation independence of pxAllocLocal
+- this won't be exposed in tau space, and won't change much, so might as well
+  make things easy and avoid guessing how much space is required after overhead
+
+(*) clean up testpxLoom TODOs
+- all for cloning
+
+(*) Implement pxLoom
+- implement a monitor
+- select from one of multiple channels
 
 (*) Define file headers
 - Add throughout (in progress)
