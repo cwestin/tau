@@ -57,6 +57,9 @@ High-level goals of this language:
 Current Status - 8/30/2013
 --------------------------
 
+These ideas have been rolling around in my head for a long time. It was about
+time I started to do something about it.
+
 This is an ambitious project. My intuition is that the design of the language
 syntax and features is the hardest part, and that once those are established,
 steps such as code generation and optimization, as well as the implementation of
@@ -79,5 +82,8 @@ goals above, I will begin to experiment with the syntax by using a parser
 generator (current thinking is antlr4 and/or antlrworks2) to build ASTs, and
 then to generating C code from that.
 
-For a more detailed look inside, see the
+For a more detailed look inside the C run-time, see the
 [C Run-Time Library Tour](notes/CrtlTour.md).
+
+I'm currently writing documentation for that, and getting ready to start on
+the initial channel implementation.
