@@ -15,6 +15,11 @@
   limitations under the License.
  */
 
+#ifndef PX_STDIO_H
+#include <stdio.h>
+#define PX_STDIO_H
+#endif
+
 #ifndef PXALLOC_H
 #include "pxAlloc.h"
 #endif
@@ -37,7 +42,8 @@ static void testpxAllocLocal()
     pxAlloc *pAlloc;
     pxHasher *pHasher;
     const int x = 5;
-    PXALLOCLOCAL_SPACE(96) stackSpace;
+    PXALLOCLOCAL_SPACE(48) stackSpace;
+    long guard = 0xdeadbeef;
 
     pAlloc = PXALLOCLOCAL_INIT(&stackSpace);
     pHasher = pxHasherCreate(pAlloc, NULL);
@@ -49,6 +55,9 @@ static void testpxAllocLocal()
     // clean up
     pxObject *const pAllocObject = PXINTERFACE_getInterface(pAlloc, pxObject);
     PXOBJECT_destroy(pAllocObject);
+
+    if (guard != 0xdeadbeef)
+        fprintf(stderr, "testpxAllocLocal: overwrote the guard!\n");
 }
 
 int main(void)

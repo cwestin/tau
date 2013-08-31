@@ -1,5 +1,5 @@
-tau
-===
+tau - A Programming Language
+============================
 
 The long-term goal of the *tau* project is to create a programming language with
 a Java-style byte-code interpreter along with a compiler for this interpreter.
@@ -54,8 +54,8 @@ High-level goals of this language:
   Cyclone's notion of safe pointers wrt arrays, which is closer to Go's
   slices in nature.)
 
-Current Status - 8/30/2013
---------------------------
+Status - 8/30/2013
+------------------
 
 These ideas have been rolling around in my head for a long time. It was about
 time I started to do something about it.

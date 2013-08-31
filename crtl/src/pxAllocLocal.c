@@ -19,16 +19,6 @@
 #include "pxAllocLocal.h"
 #endif
 
-#ifndef PX_STDIO_H
-#include <stdio.h>
-#define PX_STDIO_H
-#endif
-
-#ifndef PX_STDLIB_H
-#include <stdlib.h>
-#define PX_STDLIB_H
-#endif
-
 #ifndef PX_STRINGS_H
 #include <strings.h>
 #define PX_STRINGS_H
@@ -42,21 +32,6 @@
 #include "pxExit.h"
 #endif
 
-#ifndef PXOBJECT_H
-#include "pxObject.h"
-#endif
-
-
-typedef struct
-{
-    char *p; // pointer to the next available space
-    size_t avail; // the amount of space left
-
-    const pxAllocVt *pAllocVt;
-    pxObjectStruct objectStruct;
-
-    pxAlignAll space[1]; // available space trails off the end
-} pxAllocLocal_s;
 
 static void *pxAllocLocal_alloc(pxAlloc *pI, size_t size, int flag)
 {
@@ -122,12 +97,11 @@ static const pxObjectVt pxAllocLocalObjectVt =
     NULL,
 };
 
-pxAlloc *pxAllocLocalInit(pxAlignAll *pSpace, size_t size)
+pxAlloc *pxAllocLocalInit(pxAllocLocal_s *const pThis, size_t size)
 {
     if (size < sizeof(pxAllocLocal_s))
         pxExit("can't initialize local allocator\n");
 
-    pxAllocLocal_s *const pThis = (pxAllocLocal_s *)pSpace;
     pThis->pAllocVt = &pxAllocLocalAllocVt;
     pxObjectStructInit(&pThis->objectStruct, &pxAllocLocalObjectVt, NULL);
     pThis->p = (char *)pThis->space;
