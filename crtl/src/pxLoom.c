@@ -96,6 +96,8 @@ typedef struct pxLoom_Cell
             unsigned n;
         } semWait;
     } state;
+
+    pxDllLink existenceLink;
 } pxLoom_Cell;
 
 typedef struct pxLoom_s
@@ -103,7 +105,7 @@ typedef struct pxLoom_s
     pxLoom_Cell *pCurrentCell; // only valid during calls to _resume
 
     pxDllHead readyCellList;
-    pxDllHead waitingCellList;
+    pxDllHead cellList;
 
     pxAlloc *pAlloc;
 
@@ -259,9 +261,13 @@ static void pxLoom_createCell(pxLoom *const pI, pxLoomFrame *const pFrame)
         pThis->pAlloc, sizeof(pxLoom_Cell), PXALLOC_F_DIRTY);
     pCell->pTopFrame = pFrame;
     pxDllInit(&pCell->scheduleLink);
+    pxDllInit(&pCell->existenceLink);
 
     // add this to the list of things that can run
     pxDllAddLast(&pThis->readyCellList, &pCell->scheduleLink);
+
+    // and take note of its existence
+    pxDllAddLast(&pThis->cellList, &pCell->existenceLink);
 }
 
 static unsigned pxLoom_run(pxLoom *const pI)
@@ -294,6 +300,7 @@ static unsigned pxLoom_run(pxLoom *const pI)
             if (!pCell->pTopFrame)
             {
                 pxDllRemove(pLink);
+                pxDllRemove(&pCell->existenceLink);
 
                 pxFree *const pFree =
                     PXINTERFACE_getInterface(pThis->pAlloc, pxFree);
@@ -320,7 +327,7 @@ static unsigned pxLoom_run(pxLoom *const pI)
         // TODO round-robin scheduling
     }
 
-    return 0; // TODO return proper count
+    return pxDllCount(&pThis->cellList);
 }
 
 
@@ -374,7 +381,7 @@ pxLoom *pxLoomCreate(pxAlloc *pAlloc)
     pxLoom_s *const pThis =
         PXALLOC_alloc(pAlloc, sizeof(pxLoom_s), PXALLOC_F_DIRTY);
     pxDllInit(&pThis->readyCellList);
-    pxDllInit(&pThis->waitingCellList);
+    pxDllInit(&pThis->cellList);
     pThis->pAlloc = pAlloc;
     pThis->pLoomVt = &pxLoomLoomVt;
     pxObjectStructInit(&pThis->objectStruct, &pxLoomObjectVt, NULL);

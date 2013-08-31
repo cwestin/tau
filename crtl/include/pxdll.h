@@ -234,7 +234,13 @@ static inline pxDllLink *pxDllGetLast(const pxDllHead *pThis)
     return pxDllGetPrevious(pThis, pThis);
 }
 
+/**
+   Recover the pointer to a list member from the membership.
 
+   @param pThis pointer to the membership (the pxDllLink element)
+   @param structName the C structure name for the containing structure
+   @param linkName the name of the link element in structName
+ */
 #define PXDLL_STRUCT(pThis, structName, linkName) \
     ((structName *)(((char *)pThis) - offsetof(structName, linkName)))
 
@@ -249,5 +255,13 @@ static inline pxDllLink *pxDllGetLast(const pxDllHead *pThis)
   @returns true if the list is valid, false otherwise
 */
 bool pxDllIsValid(const pxDllHead *pThis);
+
+/** @fn pxDllCount
+  Count the number of elements on the list.
+
+  @param pThis pointer to the head of the list
+  @returns the count of elements on the list
+*/
+unsigned pxDllCount(const pxDllHead *pThis);
 
 #endif // PXDLL_H

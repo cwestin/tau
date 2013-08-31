@@ -64,3 +64,15 @@ bool pxDllIsValid(const pxDllHead *const pThis)
     // if we got here, all is well
     return true;
 }
+
+unsigned pxDllCount(const pxDllHead *const pThis)
+{
+    unsigned count = 0;
+    for(pxDllLink *pLink = pxDllGetFirst(pThis); pLink;
+        pLink = pxDllGetNext(pThis, pLink))
+    {
+        ++count;
+    }
+
+    return count;
+}

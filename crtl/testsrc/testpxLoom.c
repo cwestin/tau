@@ -435,12 +435,14 @@ static void testpxLoom()
     Consumer_frame *const pConsumer = ConsumerCreate(pAllocD, &u);
 
     PXLOOM_createCell(pLoom, &pConsumer->loomFrame);
-    PXLOOM_run(pLoom);
+    unsigned remainingCells = PXLOOM_run(pLoom);
 
     if (u == 0)
         fprintf(stderr, "producer did not run\n");
 
-    // free the loom and check the debug allocator
+    if (remainingCells)
+        fprintf(stderr, "there are unfinished cells\n");
+
     // TODO free the loom and check the debug allocator
 }
 
