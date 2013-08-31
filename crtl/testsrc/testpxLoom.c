@@ -14,6 +14,19 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  */
+/*
+  Unit test for the loom.
+
+  Tests the loom by creating a producer-consumer pair. The pair share a
+  state variable that is used by the producer to send Fibonacci numbers to
+  the consumer. The state variable is protected by a loom semaphore. The use
+  of Fibonacci numbers provided a contrived way to test function calls
+  for loom-executable functions (i.e., continuation stack frames).
+
+  The argument passing here is purely experimental and does not reflect the
+  style that may ultimately be used for tau-generated code. The key elements
+  are loom functionality such as the cross-loom-thread synchronization.
+ */
 
 #ifndef PX_STDIO_H
 #include <stdio.h>
@@ -41,6 +54,10 @@
 #endif
 
 
+/*
+  Classic Fibonacci implementation used to test the output of the loom-enabled
+  version.
+ */
 static unsigned fibo(unsigned n)
 {
     if (n <= 1)
@@ -49,6 +66,24 @@ static unsigned fibo(unsigned n)
     return fibo(n - 1) + fibo(n - 2);
 }
 
+
+/*
+  Stack frame elements for the loom-executable Fibonacci function, including
+  separately defined argument and return value structures.
+
+  The style here is experimental; some of these techniques may be used in
+  generated code. The idea is for a structure full of arguments to be set
+  by the caller, and for the caller to provide a place to put the results.
+  If a loom function calls more than one other loom function, it includes a
+  local union that can hold the results of all those functions; only one of
+  those will be used at a time, in much the same way as disjoint C blocks
+  use a union of space in the containing function's stack frame.
+
+  For all the examples here, the stack frame structure has a name that is
+  suffixed with _frame. A factory (<FunctionName>Create(...)) provides a means
+  to create and initialize the stack frome before executing the loom-enabled
+  call.
+ */
 typedef struct
 {
     unsigned u;

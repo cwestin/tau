@@ -8,6 +8,10 @@ The tour is really more of a cross-reference that points to the classes that
 will be used to implement certain high-level features; hopefullly this is more
 useful than just seeing a directory with a bunch of files in it.
 
+The run-time has a fair amount of tedious hand-implementation, but I consider
+this bootstrap code; the experimental tau compiler will all of this for
+non-system classes/Objects once syntax experiments begin.
+
 
 Some Conventions
 ----------------
@@ -37,6 +41,8 @@ a straight C++ implementation:
   I don't expect virtual data to make it into tau space, but it appears to
   be very convenient for the current code generation strategy (i.e., generate
   C code and compile it).
+* Macros are defined to invoke virtual functions; their names follow the
+  pattern INTERFACENAME_methodName(...).
 * When exported into tau space, class/interface/structure names will loose
   any leading px prefix.
 * The CRTL is implemented in tau/crtl, where you'll find include and src
