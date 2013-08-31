@@ -384,8 +384,10 @@ typedef struct pxLoomVt
       This runs all executable loom functions until there are none left.
 
       @param pI the loom/this
+      @returns the number of cells that are in some wait state and could not
+        be run
      */
-    void (*run)(struct pxLoom *pI);
+    unsigned (*run)(struct pxLoom *pI);
 #define PXLOOM_run(pI) \
     ((*(pI)->pVt->run)(pI))
 } pxLoomVt;

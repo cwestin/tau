@@ -88,7 +88,7 @@ typedef struct pxLoom_Cell
 {
     pxLoomFrame *pTopFrame;
 
-    pxDllLink link;
+    pxDllLink scheduleLink;
     union
     {
         struct
@@ -148,7 +148,7 @@ static void pxLoomSemaphore_Local_put(pxLoomSemaphore *pI, unsigned n)
         pNextLink = pxDllGetNext(&pThis->waitingCellList, pLink);
 
         pxLoom_Cell *const pCell =
-            PXDLL_STRUCT(pLink, pxLoom_Cell, link);
+            PXDLL_STRUCT(pLink, pxLoom_Cell, scheduleLink);
 
         if (pCell->state.semWait.n > counts)
             continue;
@@ -178,11 +178,11 @@ static bool pxLoomSemaphore_Local_get(
     pxLoom_Cell *const pCell = pThis->pLoom->pCurrentCell;
 
     // remove the cell from the readyCellList
-    pxDllRemove(&pCell->link);
+    pxDllRemove(&pCell->scheduleLink);
 
     // set this cell up to wait on this semaphore
     pCell->state.semWait.n = n;
-    pxDllAddLast(&pThis->waitingCellList, &pCell->link);
+    pxDllAddLast(&pThis->waitingCellList, &pCell->scheduleLink);
 
     return false;
 }
@@ -258,20 +258,21 @@ static void pxLoom_createCell(pxLoom *const pI, pxLoomFrame *const pFrame)
     pxLoom_Cell *pCell = PXALLOC_alloc(
         pThis->pAlloc, sizeof(pxLoom_Cell), PXALLOC_F_DIRTY);
     pCell->pTopFrame = pFrame;
-    pxDllInit(&pCell->link);
+    pxDllInit(&pCell->scheduleLink);
 
     // add this to the list of things that can run
-    pxDllAddLast(&pThis->readyCellList, &pCell->link);
+    pxDllAddLast(&pThis->readyCellList, &pCell->scheduleLink);
 }
 
-static void pxLoom_run(pxLoom *const pI)
+static unsigned pxLoom_run(pxLoom *const pI)
 {
     pxLoom_s *const pThis = PXINTERFACE_STRUCT(pI, pxLoom_s, pLoomVt);
 
     pxDllLink *pLink;
     while((pLink = pxDllGetFirst(&pThis->readyCellList)))
     {
-        pxLoom_Cell *const pCell = PXDLL_STRUCT(pLink, pxLoom_Cell, link);
+        pxLoom_Cell *const pCell =
+            PXDLL_STRUCT(pLink, pxLoom_Cell, scheduleLink);
 
         // execute until the cell yields
         pxLoomFrame *pFrame = pCell->pTopFrame;
@@ -318,6 +319,8 @@ static void pxLoom_run(pxLoom *const pI)
 
         // TODO round-robin scheduling
     }
+
+    return 0; // TODO return proper count
 }
 
 
