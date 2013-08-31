@@ -357,7 +357,14 @@ static pxLoomState Consumer_resume(
                 if (pFrame->count != PRODUCER_N)
                     fprintf(stderr, "didn't generate enough numbers\n");
 
-                // TODO free the semaphores
+                // free the semaphores
+                pxObject *pObject;
+                pObject = PXINTERFACE_getInterface(
+                    pFrame->pProducerSem, pxObject);
+                PXOBJECT_destroy(pObject);
+                pObject = PXINTERFACE_getInterface(
+                    pFrame->pConsumerSem, pxObject);
+                PXOBJECT_destroy(pObject);
 
                 PXLOOMFRAME_RETURN(&pFrame->loomFrame);
             }

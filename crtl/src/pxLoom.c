@@ -206,12 +206,13 @@ static const pxObjectInterface pxLoomSemaphore_Local_interfaces[] =
 
 static void pxLoomSemaphore_Local_destroy(pxObject *pI)
 {
-/*
-    pxLoomSempahore_local *const pThis =
+    pxLoomSemaphore_Local *const pThis =
         PXINTERFACE_STRUCT(pI, pxLoomSemaphore_Local, objectStruct.pObjectVt);
-*/
 
-    pxExit("pxLoomSemaphore_Local_destroy: unimplemented\n");
+    // if there are any waiters, complain
+    if (!pxDllIsEmpty(&pThis->waitingCellList))
+        pxExit("pxLoomSemaphore_Local_destroy: there are waiters\n");
+
     pxObject_destroy(pI);
 }
 
