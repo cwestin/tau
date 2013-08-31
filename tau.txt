@@ -16,7 +16,7 @@
 - select from one of multiple channels
 
 (*) Define file headers
-- Add throughout (in progress)
+- Add and document throughout (in progress)
 - set up for doxygen (early experiments not great; considering)
 
 (*) implement pxString
@@ -25,6 +25,8 @@
 (*) Finish pxHashMapLocal
 - should I really finish this? Or should this be implemented in tau space now
   that I have pxHm for clone's use?
+  - YES: would be a good way to experiment with iterators and their ability to
+    operate over the channel boundary when the hashmap is remote
 - fix average bucket size handling similar to pxHm
 - requires cloning objects to clone the key into the right arena
 
