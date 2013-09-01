@@ -126,6 +126,9 @@ which have been implemented so far.
   All objects are allocated from an arena. There will be arenas associated with
   cells and stack frames.
 
+  Another way to think of arenas is "dependency injection for memory
+  management."
+
 * Erlang-style Processes
   pxLoom provides support for this. pxLoom fakes co-routines in C; see the
   header file for more detail.
