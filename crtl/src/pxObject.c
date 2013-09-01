@@ -163,7 +163,7 @@ static size_t pxObjectStruct_countMembers(pxObjectStruct *const pO)
     return nonNullMembers;
 }
 
-static inline pxObjectStruct *pxObjectCloner_cloneThis(
+static pxObjectStruct *pxObjectCloner_cloneThis(
     pxObjectCloner *pCloner, pxObjectStruct *pO, size_t *pNonNullMembers)
 {
     // allocate and copy the object
