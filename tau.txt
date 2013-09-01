@@ -1,8 +1,14 @@
+(*) Implement pxString - so we have an Object to transmit over a test channel
+- add string cloning -- will require variable length cloning
+
 (*) Implement pxChannel
 - need abstract interface
 - need concrete class for intra-loom communication
 - need concrete class for iter-loom communication
   - will use pthreads primitives for synchronization?
+
+(*) modify pxHashableVar to pxBoxedNative
+- use this to send and receive scalars on a channel
 
 (*) undo the excessive compilation independence of pxAllocLocal
 - this won't be exposed in tau space, and won't change much, so might as well

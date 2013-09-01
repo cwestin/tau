@@ -66,7 +66,7 @@ static const pxObjectVt pxHasherObjectVt =
     NULL,
 };
 
-pxHasher *pxHasherCreate(pxAlloc *pAlloc, pxInterface *pOwner)
+pxHasher *pxHasherCreate(pxAlloc *const pAlloc, pxInterface *const pOwner)
 {
     pxHasher_s *pThis =
         PXALLOC_alloc(pAlloc, sizeof(pxHasher_s), PXALLOC_F_DIRTY);
@@ -76,7 +76,7 @@ pxHasher *pxHasherCreate(pxAlloc *pAlloc, pxInterface *pOwner)
     return (pxHasher *)&pThis->objectStruct.pObjectVt;
 }
 
-int PXHASHER_getHash(pxHasher *pI)
+int PXHASHER_getHash(pxHasher *const pI)
 {
     pxHasher_s *const pThis =
         PXINTERFACE_STRUCT(pI, pxHasher_s, objectStruct.pObjectVt);
@@ -84,10 +84,19 @@ int PXHASHER_getHash(pxHasher *pI)
     return pThis->hashValue;
 }
 
-void PXHASHER_hashBytes(pxHasher *pI, const void *p, size_t length)
+void PXHASHER_hashBytes(pxHasher *const pI,
+                        const void *const p, const size_t length)
 {
     pxHasher_s *const pThis =
         PXINTERFACE_STRUCT(pI, pxHasher_s, objectStruct.pObjectVt);
 
     pxHashVoid(&pThis->hashValue, p, length);
+}
+
+void PXHASHER_hashString(pxHasher *const pI, const char *const pS)
+{
+    pxHasher_s *const pThis =
+        PXINTERFACE_STRUCT(pI, pxHasher_s, objectStruct.pObjectVt);
+
+    pxHashString(&pThis->hashValue, pS);
 }
