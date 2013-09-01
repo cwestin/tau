@@ -19,11 +19,6 @@
 #include "pxAllocDebug.h"
 #endif
 
-#ifndef PX_STDIO_H
-#include <stdio.h>
-#define PX_STDIO_H
-#endif
-
 #ifndef PX_STRING_H
 #include <string.h>
 #define PX_STRING_H
