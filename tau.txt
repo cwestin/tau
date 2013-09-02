@@ -1,6 +1,3 @@
-(*) Implement pxString - so we have an Object to transmit over a test channel
-- add string cloning -- will require variable length cloning
-
 (*) Implement pxChannel
 - need abstract interface
 - need concrete class for intra-loom communication
