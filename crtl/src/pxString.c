@@ -146,6 +146,22 @@ static void pxString_destroy(pxObject *pObject)
         PXFREE_free(pFree, pThis);
 }
 
+static pxObjectStruct *pxString_dupThis(
+    pxObjectStruct *const pO, pxAlloc *const pA)
+{
+    pxString_s *const pThis = PXINTERFACE_STRUCT(pO, pxString_s, objectStruct);
+
+    const size_t length = strlen(pThis->string);
+    pxString_s *const pNew =
+        PXALLOC_alloc(pA, sizeof(pxString_s) + length, PXALLOC_F_DIRTY);
+    memcpy(pNew, pThis, sizeof(pxString_s) + length);
+
+    // also capture the allocator we used for the new instance
+    pNew->pAlloc = pA;
+    
+    return &pNew->objectStruct;
+}
+
 static const pxObjectInterface pxString_interfaces[] =
 {
     {pxStringName, offsetof(pxString_s, objectStruct.pObjectVt) - offsetof(pxString_s, pStringVt)},
@@ -161,8 +177,8 @@ static const pxObjectVt pxStringObjectVt =
         pxObject_getInterface,
     },
     pxString_destroy,
-    pxObject_cloneForbidden, // TODO
-    pxObjectStruct_dupThis,
+    pxObject_clone,
+    pxString_dupThis,
 
     sizeof(pxString_interfaces)/sizeof(pxString_interfaces[0]),
     pxString_interfaces,

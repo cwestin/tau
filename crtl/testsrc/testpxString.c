@@ -100,6 +100,26 @@ static void testpxString()
     pxHasher *const pHasher = pxHasherCreate(pAllocL, NULL);
     PXHASHABLE_hash(pHashable, pHasher);
 
+    // try cloning pBar into another allocator
+    pxAlloc *const pAllocD2 = pxAllocDebugCreate(pAllocS, NULL);
+    pxObject *const pBarO = PXINTERFACE_getInterface(pBar, pxObject);
+    pxObjectCloner cloner;
+    pxObjectClonerInitSingle(&cloner, pAllocD2);
+    pxString *const pBar2 =
+        (pxString *)PXOBJECT_clone(pBarO, pxStringName, &cloner);
+    pxObjectClonerCleanup(&cloner);
+
+    if (pBar2 == pBar)
+        fprintf(stderr, "testpxString: cloning didn't give new string\n");
+    pxComparable *const pBarC = PXINTERFACE_getInterface(pBar, pxComparable);
+    if (PXCOMPARABLE_compare(pBarC, (pxInterface *)pBar2))
+        fprintf(stderr, "testpxString: cloned string was different\n");
+
+    pO = PXINTERFACE_getInterface(pBar2, pxObject);
+    PXOBJECT_destroy(pO);
+    pO = PXINTERFACE_getInterface(pAllocD2, pxObject);
+    PXOBJECT_destroy(pO);
+
     // clean up the strings
     pO = PXINTERFACE_getInterface(pFoo1, pxObject);
     PXOBJECT_destroy(pO);

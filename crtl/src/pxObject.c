@@ -497,7 +497,8 @@ void pxObjectStructInit(
     }
 }
 
-pxObjectStruct *pxObjectStruct_dupThis(pxObjectStruct *pO, pxAlloc *pA)
+pxObjectStruct *pxObjectStruct_dupThis(
+    pxObjectStruct *const pO, pxAlloc *const pA)
 {
     // allocate and copy the object
     void *const pNew = PXALLOC_alloc(pA, pO->pObjectVt->size, PXALLOC_F_DIRTY);
@@ -506,14 +507,14 @@ pxObjectStruct *pxObjectStruct_dupThis(pxObjectStruct *pO, pxAlloc *pA)
     return (pxObjectStruct *)(((char *)pNew) + pO->pObjectVt->objectOffset);
 }
 
-static void pxObjectStruct_indent(FILE *fp, unsigned depth)
+static void pxObjectStruct_indent(FILE *const fp, const unsigned depth)
 {
     for(int i = depth; i; --i)
         fprintf(fp, "  ");
 }
 
 static void pxObjectStruct_dumpThis(
-    const pxObjectStruct *const pO, FILE *fp, unsigned depth)
+    const pxObjectStruct *const pO, FILE *const fp, const unsigned depth)
 {
     pxObjectStruct_indent(fp, depth);
     fprintf(stderr, "pxObjectStruct %p\n", pO);
