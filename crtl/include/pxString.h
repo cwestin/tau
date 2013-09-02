@@ -32,6 +32,8 @@
 /**
    @class pxString
    Immutable String.
+
+   Implements pxHashable, pxComparable.
 */
 
 struct pxString;
