@@ -7,23 +7,16 @@
 (*) modify pxHashableVar to pxBoxedNative
 - use this to send and receive scalars on a channel
 
-(*) undo the excessive compilation independence of pxAllocLocal
-- this won't be exposed in tau space, and won't change much, so might as well
-  make things easy and avoid guessing how much space is required after overhead
-
 (*) clean up testpxLoom TODOs
 - all for cloning
 
-(*) Implement pxLoom
-- implement a monitor
-- select from one of multiple channels
+(*) Implement a monitor for pxLoom
+
+(*) Implement select from one of multiple channels
 
 (*) Define file headers
 - Add and document throughout (in progress)
 - set up for doxygen (early experiments not great; considering)
-
-(*) implement pxString
-- can use this for pxHashMapLocal keys
 
 (*) Finish pxHashMapLocal
 - should I really finish this? Or should this be implemented in tau space now
