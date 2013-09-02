@@ -164,7 +164,8 @@ static size_t pxObjectStruct_countMembers(pxObjectStruct *const pO)
 }
 
 static pxObjectStruct *pxObjectCloner_cloneThis(
-    pxObjectCloner *pCloner, pxObjectStruct *pO, size_t *pNonNullMembers)
+    pxObjectCloner *const pCloner, pxObjectStruct *const pO,
+    size_t *const pNonNullMembers)
 {
     // allocate and copy the object
     void *const pNew = PXALLOC_alloc(
