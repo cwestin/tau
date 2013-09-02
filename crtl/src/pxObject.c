@@ -167,16 +167,9 @@ static pxObjectStruct *pxObjectCloner_cloneThis(
     pxObjectCloner *const pCloner, pxObjectStruct *const pO,
     size_t *const pNonNullMembers)
 {
-    // allocate and copy the object
-    void *const pNew = PXALLOC_alloc(
-        pCloner->pAlloc, pO->pObjectVt->size, PXALLOC_F_DIRTY);
-    memcpy(pNew, ((char *)pO) - pO->pObjectVt->objectOffset,
-           pO->pObjectVt->size);
-
-    *pNonNullMembers += pxObjectStruct_countMembers(pO);
-
     pxObjectStruct *const pNewO =
-        (pxObjectStruct *)(((char *)pNew) + pO->pObjectVt->objectOffset);
+        (*pO->pObjectVt->dupThis)(pO, pCloner->pAlloc);
+    *pNonNullMembers += pxObjectStruct_countMembers(pO);
 
     // we need to clone mixins first so that any members which point
     // to an interface on a mixin can find that interface
@@ -502,6 +495,15 @@ void pxObjectStructInit(
             ;
         *ppMixin = pObjectStruct;
     }
+}
+
+pxObjectStruct *pxObjectStruct_dupThis(pxObjectStruct *pO, pxAlloc *pA)
+{
+    // allocate and copy the object
+    void *const pNew = PXALLOC_alloc(pA, pO->pObjectVt->size, PXALLOC_F_DIRTY);
+    memcpy(pNew, ((char *)pO) - pO->pObjectVt->objectOffset,
+           pO->pObjectVt->size);
+    return (pxObjectStruct *)(((char *)pNew) + pO->pObjectVt->objectOffset);
 }
 
 static void pxObjectStruct_indent(FILE *fp, unsigned depth)

@@ -75,6 +75,7 @@ struct pxAlloc;
 struct pxHmMap;
 
 struct pxObjectCloner;
+struct pxObjectStruct;
 
 struct pxObject;
 typedef struct pxObjectVt
@@ -123,6 +124,29 @@ typedef struct pxObjectVt
 
 #define PXOBJECT_clone(pI, pIName, pCloner) \
     ((*(pI)->pVt->clone)(pI, pIName, pCloner))
+
+/*
+  Duplicate the containing structure.
+
+  This is not meant to be used from outside of pxObject's implementation, so
+  there is no invocation macro. Also note the first argument is *not* a proper
+  "this pointer," even though it does provide an inside reference to the
+  target object.
+
+  Note this only duplicates this immediate piece of memory; other pxObject
+  mechanisms will take care of mixins, and references, as long as you're using
+  the canned pxObject_clone implementation.
+
+  Most all objects will use the canned pxObjectStruct_dupThis() implementation,
+  but this function pointer is provided as an escape hatch. One notable user is
+  pxString, whose structure size is variable.
+
+  @param pO pointer to the objectStruct member of the object
+  @param pA the allocator to use
+  @returns pointer to the objectStruct member of the new copy
+ */
+    struct pxObjectStruct *(*dupThis)(struct pxObjectStruct *pO,
+                                      struct pxAlloc *pA);
 
     // used by pxObject_getInterface()
     size_t nInterface; // size of the interface table as a number of entries
@@ -283,6 +307,11 @@ typedef struct pxObjectStruct
 void pxObjectStructInit(
     pxObjectStruct *pObjectStruct, const pxObjectVt *pVt,
     pxInterface *pOwner);
+
+/**
+   Canned implementation of pxObjectVt.dupThis.
+*/
+pxObjectStruct *pxObjectStruct_dupThis(pxObjectStruct *pO, struct pxAlloc *pA);
 
 /**
    Dump the object for debugging purposes.

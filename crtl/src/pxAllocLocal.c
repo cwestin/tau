@@ -87,6 +87,7 @@ static const pxObjectVt pxAllocLocalObjectVt =
     },
     pxObject_destroy,
     pxObject_cloneForbidden,
+    pxObjectStruct_dupThis,
 
     sizeof(pxAllocLocal_interfaces)/sizeof(pxAllocLocal_interfaces[0]),
     pxAllocLocal_interfaces,

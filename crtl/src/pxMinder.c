@@ -77,6 +77,7 @@ static const pxObjectVt pxMinder_ItemObjectVt =
     },
     pxMinder_Item_destroy,
     pxObject_cloneForbidden, // TODO
+    pxObjectStruct_dupThis,
     sizeof(pxMinder_Item_interfaces)/sizeof(pxMinder_Item_interfaces[0]),
     pxMinder_Item_interfaces,
     sizeof(pxMinder_Item),
@@ -146,6 +147,7 @@ static const pxObjectVt pxMinderObjectVt =
     },
     pxMinder_destroy,
     pxObject_cloneForbidden, // TODO
+    pxObjectStruct_dupThis,
 
     sizeof(pxMinder_interfaces)/sizeof(pxMinder_interfaces[0]),
     pxMinder_interfaces,

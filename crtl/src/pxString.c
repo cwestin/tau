@@ -162,6 +162,7 @@ static const pxObjectVt pxStringObjectVt =
     },
     pxString_destroy,
     pxObject_cloneForbidden, // TODO
+    pxObjectStruct_dupThis,
 
     sizeof(pxString_interfaces)/sizeof(pxString_interfaces[0]),
     pxString_interfaces,

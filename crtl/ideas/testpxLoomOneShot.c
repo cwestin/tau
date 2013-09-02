@@ -108,6 +108,7 @@ static const pxObjectVt Receiver_frameObjectVt =
     },
     pxLoomFrame_destroy,
     pxObject_cloneForbidden, // TODO
+    pxObjectStruct_dupThis,
     sizeof(Receiver_frame_interfaces)/sizeof(Receiver_frame_interfaces[0]),
     Receiver_frame_interfaces,
     sizeof(Receiver_frame),
@@ -188,6 +189,7 @@ static const pxObjectVt Sender_frameObjectVt =
     },
     pxLoomFrame_destroy,
     pxObject_cloneForbidden, // TODO
+    pxObjectStruct_dupThis,
     sizeof(Sender_frame_interfaces)/sizeof(Sender_frame_interfaces[0]),
     Sender_frame_interfaces,
     sizeof(Sender_frame),

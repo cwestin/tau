@@ -106,6 +106,7 @@ static const pxObjectVt pxLoomOneShot_frameObjectVt =
     },
     pxLoomFrame_destroy,
     pxObject_cloneForbidden, // TODO
+    pxObjectStruct_dupThis,
     sizeof(pxLoomOneShot_frame_interfaces)/sizeof(pxLoomOneShot_frame_interfaces[0]),
     pxLoomOneShot_frame_interfaces,
     sizeof(pxLoomOneShot_frame),

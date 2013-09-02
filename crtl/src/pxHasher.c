@@ -56,6 +56,7 @@ static const pxObjectVt pxHasherObjectVt =
     },
     pxObject_destroy,
     pxObject_clone,
+    pxObjectStruct_dupThis,
 
     sizeof(pxHasher_interfaces)/sizeof(pxHasher_interfaces[0]),
     pxHasher_interfaces,

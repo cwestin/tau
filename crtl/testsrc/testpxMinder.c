@@ -79,6 +79,7 @@ static const pxObjectVt MyDestroyableObjectVt =
     },
     MyDestroyable_destroy,
     pxObject_cloneForbidden, // TODO
+    pxObjectStruct_dupThis,
     sizeof(MyDestroyable_interfaces)/sizeof(MyDestroyable_interfaces[0]),
     MyDestroyable_interfaces,
     sizeof(MyDestroyable),

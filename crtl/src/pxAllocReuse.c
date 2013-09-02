@@ -162,6 +162,7 @@ static const pxObjectVt pxAllocReuseObjectVt =
     },
     pxObject_destroy,
     pxObject_cloneForbidden,
+    pxObjectStruct_dupThis,
 
     sizeof(pxAllocReuse_interfaces)/sizeof(pxAllocReuse_interfaces[0]),
     pxAllocReuse_interfaces,

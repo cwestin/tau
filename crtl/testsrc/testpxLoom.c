@@ -180,6 +180,7 @@ static const pxObjectVt Fibo_frameObjectVt =
     },
     pxLoomFrame_destroy,
     pxObject_cloneForbidden, // TODO
+    pxObjectStruct_dupThis,
     sizeof(Fibo_frame_interfaces)/sizeof(Fibo_frame_interfaces[0]),
     Fibo_frame_interfaces,
     sizeof(Fibo_frame),
@@ -277,6 +278,7 @@ static const pxObjectVt Producer_frameObjectVt =
     },
     pxLoomFrame_destroy,
     pxObject_cloneForbidden, // TODO
+    pxObjectStruct_dupThis,
     sizeof(Producer_frame_interfaces)/sizeof(Producer_frame_interfaces[0]),
     Producer_frame_interfaces,
     sizeof(Producer_frame),
@@ -403,6 +405,7 @@ static const pxObjectVt Consumer_frameObjectVt =
     },
     pxLoomFrame_destroy,
     pxObject_cloneForbidden, // TODO
+    pxObjectStruct_dupThis,
     sizeof(Consumer_frame_interfaces)/sizeof(Consumer_frame_interfaces[0]),
     Consumer_frame_interfaces,
     sizeof(Consumer_frame),

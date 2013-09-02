@@ -119,6 +119,7 @@ static const pxObjectVt pxAllocSystemObjectVt =
     },
     pxObject_destroy,
     pxObject_cloneForbidden,
+    pxObjectStruct_dupThis,
 
     sizeof(pxAllocSystem_interfaces)/sizeof(pxAllocSystem_interfaces[0]),
     pxAllocSystem_interfaces,

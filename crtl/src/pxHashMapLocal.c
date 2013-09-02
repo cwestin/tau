@@ -203,6 +203,7 @@ static const pxObjectVt pxHashMapLocalObjectVt =
     },
     pxObject_destroy,
     pxObject_cloneForbidden, // TODO
+    pxObjectStruct_dupThis,
 
     sizeof(pxHashMapLocal_interfaces)/sizeof(pxHashMapLocal_interfaces[0]),
     pxHashMapLocal_interfaces,

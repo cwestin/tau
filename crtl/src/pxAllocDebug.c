@@ -227,6 +227,7 @@ static const pxObjectVt pxAllocDebugObjectVt =
     },
     pxAllocDebug_destroy,
     pxObject_cloneForbidden,
+    pxObjectStruct_dupThis,
 
     sizeof(pxAllocDebug_interfaces)/sizeof(pxAllocDebug_interfaces[0]),
     pxAllocDebug_interfaces,
