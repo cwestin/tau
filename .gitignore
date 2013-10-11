@@ -28,3 +28,6 @@
 
 # some MacOS thing
 .DS_Store
+
+# ignore the imported tools
+flex/
