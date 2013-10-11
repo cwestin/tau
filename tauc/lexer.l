@@ -15,17 +15,26 @@
   limitations under the License.
  */
 
-%option reentrant stack noyywrap
+%option warn
+%option reentrant
+%option stack
+%option noyywrap
+/* %option bison-bridge */
 
+/* scanner states */
 %x LINECOMMENT
 %x COMMENT
 
+/* definitions */
+DIGIT [0-9]
+ID [_a-zA-Z][_a-zA-Z0-9]*
+
 %%
 
-"//" yy_push_state(LINECOMMENT, yyscanner);
+"//" { yy_push_state(LINECOMMENT, yyscanner); }
 [:space:]+
 
-<LINECOMMENT>\n yy_pop_state(yyscanner);
+<LINECOMMENT>\n { yy_pop_state(yyscanner); }
 <LINECOMMENT>[^\n]+
 
 %%
