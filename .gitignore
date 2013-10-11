@@ -26,8 +26,11 @@
 *.jar
 *.war
 
-# some MacOS thing
+# MacOS Finder UI state
 .DS_Store
+
+# MacOS compiler symbols
+*.dSYM
 
 # ignore the imported tools
 flex/
