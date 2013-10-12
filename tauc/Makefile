@@ -15,8 +15,8 @@ tauc:	lex.yy.c
 grammar.tab.h grammar.tab.c:	grammar.y
 	$(BISON) grammar.y
 
-lex.yy.c:	grammar.tab.h lexer.l
-	$(FLEX) lexer.l
+lex.yy.c:	grammar.tab.h lexemes.l
+	$(FLEX) lexemes.l
 
 clean:
 	-@rm tauc 2>/dev/null || true
