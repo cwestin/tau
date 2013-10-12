@@ -12,10 +12,10 @@ BISON = /usr/local/bin/bison
 tauc:	lex.yy.c
 	$(CC) $(CFLAGS) -o tauc lex.yy.c
 
-grammar.tab.c:	grammar.y
+grammar.tab.h grammar.tab.c:	grammar.y
 	$(BISON) grammar.y
 
-lex.yy.c:	lexer.l
+lex.yy.c:	grammar.tab.h lexer.l
 	$(FLEX) lexer.l
 
 clean:

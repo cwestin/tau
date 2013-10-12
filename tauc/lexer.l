@@ -19,7 +19,11 @@
 %option reentrant
 %option stack
 %option noyywrap
-/* %option bison-bridge */
+%option bison-bridge
+
+%{
+#include "grammar.tab.h"
+%}
 
 /* scanner states */
 %x LINECOMMENT
@@ -37,14 +41,21 @@ ID [_a-zA-Z][_a-zA-Z0-9]*
 <LINECOMMENT>\n { yy_pop_state(yyscanner); }
 <LINECOMMENT>[^\n]+
 
+"as" { return AS; }
+"\." { return DOT; }
+"import" { return IMPORT; }
+"package" { return PACKAGE; }
+";" { return SEMICOLON; }
+
 %%
 
 int main(int argc, char *argv[])
 {
     yyscan_t scanner;
+    YYSTYPE *pyylval = NULL;
 
     yylex_init(&scanner);
-    yylex(scanner);
+    yylex(pyylval, scanner);
     yylex_destroy(scanner);
 
     return 0;
