@@ -1,3 +1,4 @@
 # ignore generated files
-lex.yy.c
 tauc
+grammar.tab.c
+lex.yy.c

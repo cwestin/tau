@@ -34,3 +34,4 @@
 
 # ignore the imported tools
 flex/
+bison/
