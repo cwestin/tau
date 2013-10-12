@@ -2,7 +2,7 @@
 # TODO(cwestin) share these with the generated makefile in crtl
 CC = cc
 DEBUG = -g
-INCLUDE = /Users/cwestin/git/tau/crtl/include/
+INCLUDE = ../crtl/include/
 CFLAGS = -Wall -Wno-invalid-offsetof -I$(INCLUDE) $(DEBUG)
 
 # use the most recent versions of tools
