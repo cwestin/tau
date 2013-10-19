@@ -47,6 +47,8 @@ typedef union
     short s;
     long l;
     int i;
+    float f;
+    double d;
     struct pxAlignUnknown *pU;
     void *p;
 } pxAlignAll;
